@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require "nginxtra"
+Nginxtra::CLI.start
