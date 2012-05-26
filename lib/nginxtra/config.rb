@@ -3,6 +3,7 @@ module Nginxtra
   # nginxtra.  It provides the DSL for defining the compilation
   # options of nginx and the config file contents.
   class Config
+    FILENAME = "nginxtra.conf.rb".freeze
     @@last_config = nil
 
     def initialize
@@ -42,7 +43,7 @@ module Nginxtra
       opt = "--#{opt}" unless opt =~ /^--/
       raise Nginxtra::Error::InvalidConfig.new("The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
       raise Nginxtra::Error::InvalidConfig.new("The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/
-      raise Nginxtra::Error::InvalidConfig.new("The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Util::CONFIG_FILE}.") if opt =~ /--conf-path=/
+      raise Nginxtra::Error::InvalidConfig.new("The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Config::FILENAME}.") if opt =~ /--conf-path=/
       @compile_options << opt
     end
 
@@ -121,6 +122,25 @@ module Nginxtra
       # Obtain the last Nginxtra::Config object that was created.
       def last_config
         @@last_config
+      end
+
+      # Obtain the config file path based on the current directory.
+      # This will be the path to the first nginxtra.conf.rb found
+      # starting at the current directory and working up until it is
+      # found or the filesystem boundary is hit (so /nginxtra.conf.rb
+      # is the last possible tested file).  If none is found, nil is
+      # returned.
+      def path
+        path = File.absolute_path "."
+
+        begin
+          config = File.join path, FILENAME
+          return config if File.exists? config
+          path = File.dirname path
+        end until path == "/"
+
+        config = File.join path, FILENAME
+        config if File.exists? config
       end
     end
   end
