@@ -1,6 +1,15 @@
 require "spec_helper"
 
 describe Nginxtra::Config do
+  it "remembers the last config created" do
+    Nginxtra::Config.last_config.should == nil
+    config1 = nginxtra
+    Nginxtra::Config.last_config.should == config1
+    config2 = nginxtra
+    Nginxtra::Config.last_config.should_not == config1
+    Nginxtra::Config.last_config.should == config2
+  end
+
   describe "compile options" do
     it "supports empty compile options" do
       config = nginxtra.config do

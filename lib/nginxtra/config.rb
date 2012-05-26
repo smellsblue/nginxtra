@@ -3,9 +3,12 @@ module Nginxtra
   # nginxtra.  It provides the DSL for defining the compilation
   # options of nginx and the config file contents.
   class Config
+    @@last_config = nil
+
     def initialize
       @compile_options = []
       @file_contents = []
+      @@last_config = self
     end
 
     # This method is used to configure nginx via nginxtra.  Inside
@@ -90,6 +93,20 @@ module Nginxtra
       @file_contents << "}"
     end
 
+    # Arbitrary config can be specified as long as the name doesn't
+    # clash with one of the Config instance methods.
+    #
+    # Example usage:
+    #   nginxtra.config do
+    #     user "my_user"
+    #     worker_processes 42
+    #     events do
+    #       worker_connections 512
+    #     end
+    #   end
+    #
+    # Any arguments the the method will be joined with the method name
+    # with a space to produce the output.
     def method_missing(method, *args, &block)
       values = [method, *args].join " "
 
@@ -97,6 +114,13 @@ module Nginxtra
         config_block values, &block
       else
         config_line values
+      end
+    end
+
+    class << self
+      # Obtain the last Nginxtra::Config object that was created.
+      def last_config
+        @@last_config
       end
     end
   end
