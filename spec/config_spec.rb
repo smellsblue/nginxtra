@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Nginxtra::Config do
   describe "compile options" do
-    it "defaults to auto_semicolon" do
-      nginxtra.options[:auto_semicolon].should == true
-    end
-
     it "supports empty compile options" do
       config = nginxtra.config do
       end

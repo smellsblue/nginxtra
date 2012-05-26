@@ -3,13 +3,7 @@ module Nginxtra
   # nginxtra.  It provides the DSL for defining the compilation
   # options of nginx and the config file contents.
   class Config
-    # The options passed in to the config method.
-    attr_reader :options
-
-    DEFAULT_OPTIONS = { :auto_semicolon => true }.freeze
-
     def initialize
-      @options = DEFAULT_OPTIONS.dup
       @compile_options = []
       @file_contents = []
     end
@@ -19,16 +13,7 @@ module Nginxtra
     #   nginxtra.config do
     #     ...
     #   end
-    #
-    # Some options are permitted:
-    # * auto_semicolon: Defaults to true, auto adds ; to config lines.
-    #
-    # Example usage:
-    #   nginxtra.config :auto_semicolon => false do
-    #     ...
-    #   end
-    def config(options = {}, &block)
-      @options = DEFAULT_OPTIONS.merge options
+    def config(&block)
       instance_eval &block
       self
     end
