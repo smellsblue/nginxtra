@@ -5,7 +5,7 @@ end
 class Nginxtra
   class << self
     def version
-      File.read(File.join(File.dirname(__FILE__), "VERSION")).strip
+      File.read(File.expand_path("../VERSION", __FILE__)).strip
     end
 
     def gem
