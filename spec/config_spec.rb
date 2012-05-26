@@ -63,4 +63,89 @@ describe Nginxtra::Config do
       config.compile_options.should == ""
     end
   end
+
+  describe "nginx.conf definition" do
+    it "supports empty definition" do
+      config = nginxtra.config do
+      end
+
+      config.config_contents.should == ""
+    end
+
+    it "allows simple line definitions" do
+      config = nginxtra.config do
+        config_line "user my_user"
+        config_line "worker_processes 42"
+      end
+
+      config.config_contents.should == "user my_user;
+worker_processes 42;"
+    end
+
+    it "allows line definitions without semicolon" do
+      config = nginxtra.config do
+        bare_config_line "user my_user"
+        bare_config_line "worker_processes 42"
+      end
+
+      config.config_contents.should == "user my_user
+worker_processes 42"
+    end
+
+    it "allows block definitions" do
+      config = nginxtra.config do
+        config_block "events" do
+          config_line "worker_connections 4242"
+        end
+      end
+
+      config.config_contents.should == "events {
+worker_connections 4242;
+}"
+    end
+
+    it "supports empty block definitions" do
+      config = nginxtra.config do
+        config_block "events"
+      end
+
+      config.config_contents.should == "events {
+}"
+    end
+
+    it "allows arbitrary blocks and lines" do
+      config = nginxtra.config do
+        user "my_user"
+        worker_processes 42
+
+        events do
+          worker_connections 512
+        end
+
+        http do
+          location "= /robots.txt" do
+            access_log "off"
+          end
+
+          location "/" do
+            try_files "$uri", "$uri.html"
+          end
+        end
+      end
+
+      config.config_contents.should == "user my_user;
+worker_processes 42;
+events {
+worker_connections 512;
+}
+http {
+location = /robots.txt {
+access_log off;
+}
+location / {
+try_files $uri $uri.html;
+}
+}"
+    end
+  end
 end
