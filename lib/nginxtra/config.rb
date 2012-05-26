@@ -142,6 +142,16 @@ module Nginxtra
         config = File.join path, FILENAME
         config if File.exists? config
       end
+
+      # Retrieve the directory where nginx source is located.
+      def src_dir
+        File.absolute_path File.expand_path("../../../src/nginx", __FILE__)
+      end
+
+      # Retrieve the directory where nginx is built into.
+      def build_dir
+        File.absolute_path File.expand_path("../../../build/nginx", __FILE__)
+      end
     end
   end
 end
