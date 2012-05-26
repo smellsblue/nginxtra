@@ -143,6 +143,17 @@ module Nginxtra
         config if File.exists? config
       end
 
+      # Determine where the config file is and require it.  Return the
+      # resulting config loaded by the path.
+      # Nginxtra::Error::MissingConfig will be raised if the config
+      # file cannot be found.
+      def require!
+        config_path = path
+        raise Nginxtra::Error::MissingConfig.new("Cannot find #{FILENAME} to configure nginxtra!") unless config_path
+        require config_path
+        last_config
+      end
+
       # Retrieve the directory where nginx source is located.
       def src_dir
         File.absolute_path File.expand_path("../../../src/nginx", __FILE__)

@@ -201,4 +201,21 @@ try_files $uri $uri.html;
       Nginxtra::Config.path.should == nil
     end
   end
+
+  describe "require!" do
+    it "should require the config and then return the last config" do
+      config = nil
+      Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
+      Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
+        config = nginxtra
+        nil
+      end
+      Nginxtra::Config.require!.should == config
+    end
+
+    it "raises an error if the config file cannot be found" do
+      Nginxtra::Config.should_receive(:path).and_return(nil)
+      lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
+    end
+  end
 end
