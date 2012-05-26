@@ -151,6 +151,7 @@ module Nginxtra
         config_path = path
         raise Nginxtra::Error::MissingConfig.new("Cannot find #{FILENAME} to configure nginxtra!") unless config_path
         require config_path
+        raise Nginxtra::Error::InvalidConfig.new("No configuration is specified in #{config_path}!") unless last_config
         last_config
       end
 

@@ -217,5 +217,14 @@ try_files $uri $uri.html;
       Nginxtra::Config.should_receive(:path).and_return(nil)
       lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
     end
+
+    it "raises an error if the config file doesn't specify any configuration" do
+      Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
+      Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
+        nil
+      end
+      Nginxtra::Config.should_receive(:last_config).and_return(nil)
+      lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::InvalidConfig)
+    end
   end
 end
