@@ -1,5 +1,7 @@
 module Nginxtra
+  # A class with some utility methods for nginxtra.
   class Util
+    # The name of the nginxtra config file.
     CONFIG_FILE = "nginxtra.conf.rb"
 
     class << self
