@@ -32,10 +32,10 @@ module Nginxtra
     #
     # Example usage:
     #   nginxtra.config do
-    #     option "--with-http_gzip_static_module"
-    #     option "--with-cc-opt=-Wno-error"
+    #     compile_option "--with-http_gzip_static_module"
+    #     compile_option "--with-cc-opt=-Wno-error"
     #   end
-    def option(opt)
+    def compile_option(opt)
       opt = "--#{opt}" unless opt =~ /^--/
       raise Nginxtra::Error::InvalidConfig.new("The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
       raise Nginxtra::Error::InvalidConfig.new("The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/

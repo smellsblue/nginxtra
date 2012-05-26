@@ -11,7 +11,7 @@ describe Nginxtra::Config do
 
     it "supports options to be defined without --" do
       config = nginxtra.config do
-        option "without-http_gzip_module"
+        compile_option "without-http_gzip_module"
       end
 
       config.compile_options.should == "--without-http_gzip_module"
@@ -19,7 +19,7 @@ describe Nginxtra::Config do
 
     it "supports options to be defined with --" do
       config = nginxtra.config do
-        option "--without-http_gzip_module"
+        compile_option "--without-http_gzip_module"
       end
 
       config.compile_options.should == "--without-http_gzip_module"
@@ -27,9 +27,9 @@ describe Nginxtra::Config do
 
     it "allows multiple options, and preserves the order" do
       config = nginxtra.config do
-        option "--without-http_gzip_module"
-        option "with-pcre-jit"
-        option "--with-select_module"
+        compile_option "--without-http_gzip_module"
+        compile_option "with-pcre-jit"
+        compile_option "--with-select_module"
       end
 
       config.compile_options.should == "--without-http_gzip_module --with-pcre-jit --with-select_module"
@@ -37,25 +37,25 @@ describe Nginxtra::Config do
 
     it "prevents the use of --prefix option" do
       config = nginxtra
-      lambda { config.option "--prefix=/usr/share/nginx" }.should raise_error(Nginxtra::Error::InvalidConfig)
+      lambda { config.compile_option "--prefix=/usr/share/nginx" }.should raise_error(Nginxtra::Error::InvalidConfig)
       config.compile_options.should == ""
     end
 
     it "prevents the use of --prefix option embedded with other options" do
       config = nginxtra
-      lambda { config.option "--someoption --prefix=/usr/share/nginx --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
+      lambda { config.compile_option "--someoption --prefix=/usr/share/nginx --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
       config.compile_options.should == ""
     end
 
     it "prevents the use of the --sbin-path option" do
       config = nginxtra
-      lambda { config.option "--someoption --sbin-path=something --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
+      lambda { config.compile_option "--someoption --sbin-path=something --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
       config.compile_options.should == ""
     end
 
     it "prevents the use of the --conf-path option" do
       config = nginxtra
-      lambda { config.option "--someoption --conf-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
+      lambda { config.compile_option "--someoption --conf-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
       config.compile_options.should == ""
     end
   end
