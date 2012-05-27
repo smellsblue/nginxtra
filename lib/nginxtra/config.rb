@@ -155,14 +155,20 @@ module Nginxtra
         last_config
       end
 
+      # Retrieve the base dir of nginxtra (located just above lib,
+      # probably in your gems/nginxtra-xxx directory).
+      def base_dir
+        File.absolute_path File.expand_path("../../..", __FILE__)
+      end
+
       # Retrieve the directory where nginx source is located.
       def src_dir
-        File.absolute_path File.expand_path("../../../src/nginx", __FILE__)
+        File.join base_dir, "src/nginx"
       end
 
       # Retrieve the directory where nginx is built into.
       def build_dir
-        File.absolute_path File.expand_path("../../../build/nginx", __FILE__)
+        File.join base_dir, "build/nginx"
       end
     end
   end
