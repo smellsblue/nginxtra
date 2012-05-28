@@ -24,6 +24,7 @@ module Nginxtra
 
       def link_config
         @thor.inside File.join(Nginxtra::Config.build_dir, "conf") do
+          @thor.remove_file "nginx.conf"
           @thor.create_link "nginx.conf", Nginxtra::Config.nginx_config
         end
       end

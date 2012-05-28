@@ -17,6 +17,7 @@ describe Nginxtra::Actions::Start do
     config_mock.should_receive(:config_contents).and_return("The config contents")
     File.should_receive(:write).with(config_file, "The config contents")
     thor_mock.stub(:inside).with(nginx_conf_dir).and_yield
+    thor_mock.should_receive(:remove_file).with("nginx.conf")
     thor_mock.should_receive(:create_link).with("nginx.conf", config_file)
     thor_mock.should_receive(:run).with("start-stop-daemon --start --quiet --pidfile #{pidfile} --exec #{executable}")
     Time.stub(:now).and_return(:fake_time)
