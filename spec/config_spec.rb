@@ -67,6 +67,12 @@ describe Nginxtra::Config do
       lambda { config.compile_option "--someoption --conf-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
       config.compile_options.should == ""
     end
+
+    it "prevents the use of the --pid-path option" do
+      config = nginxtra
+      lambda { config.compile_option "--someoption --pid-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
+      config.compile_options.should == ""
+    end
   end
 
   describe "nginx.conf definition" do

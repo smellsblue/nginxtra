@@ -5,10 +5,11 @@ describe Nginxtra::Actions::Compile do
   let(:config_mock) { Object.new }
   let(:src_dir) { File.absolute_path File.expand_path("../../src/nginx", __FILE__) }
   let(:build_dir) { File.absolute_path File.expand_path("../../build/nginx", __FILE__) }
+  let(:pidfile) { File.absolute_path File.expand_path("../../.nginx_pid", __FILE__) }
 
   it "compiles based on the passed in config" do
     thor_mock.stub(:inside).with(src_dir).and_yield
-    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --option1 --option2")
+    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
     config_mock.stub(:compile_options).and_return("--option1 --option2")
@@ -21,7 +22,7 @@ describe Nginxtra::Actions::Compile do
 
   it "compiles based on the passed in config when different options were previously compiled" do
     thor_mock.stub(:inside).with(src_dir).and_yield
-    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --option1 --option2")
+    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
     config_mock.stub(:compile_options).and_return("--option1 --option2")
@@ -44,7 +45,7 @@ describe Nginxtra::Actions::Compile do
 
   it "recompiles if force is passed in" do
     thor_mock.stub(:inside).with(src_dir).and_yield
-    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --option1 --option2")
+    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
     config_mock.stub(:compile_options).and_return("--option1 --option2")

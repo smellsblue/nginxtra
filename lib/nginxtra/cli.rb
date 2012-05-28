@@ -23,5 +23,10 @@ module Nginxtra
     def start
       Nginxtra::Actions::Start.new(self, Nginxtra::Config.require!).start
     end
+
+    desc "stop", "Stop nginx"
+    def stop
+      Nginxtra::Actions::Stop.new(self, Nginxtra::Config.require!).stop
+    end
   end
 end

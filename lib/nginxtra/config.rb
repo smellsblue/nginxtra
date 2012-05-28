@@ -32,8 +32,8 @@ module Nginxtra
     # Specify a compile time option for nginx.  The leading "--" is
     # optional and will be added if missing.  The following options
     # are not allowed and will cause an exception: --prefix,
-    # --sbin-path and --conf-path.  The order the options are
-    # specified will be the order they are used when configuring
+    # --sbin-path, --conf-path and --pid-path.  The order the options
+    # are specified will be the order they are used when configuring
     # nginx.
     #
     # Example usage:
@@ -46,6 +46,7 @@ module Nginxtra
       raise Nginxtra::Error::InvalidConfig.new("The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
       raise Nginxtra::Error::InvalidConfig.new("The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/
       raise Nginxtra::Error::InvalidConfig.new("The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Config::FILENAME}.") if opt =~ /--conf-path=/
+      raise Nginxtra::Error::InvalidConfig.new("The --pid-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where the pid file is created.") if opt =~ /--pid-path=/
       @compile_options << opt
     end
 
