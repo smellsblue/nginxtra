@@ -11,7 +11,33 @@ describe Nginxtra::Actions::Compile do
     thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
+    config_mock.stub(:compile_options).and_return("--option1 --option2")
+    Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return(nil)
+    Time.stub(:now).and_return(:fake_time)
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
+    Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
+  end
+
+  it "compiles based on the passed in config when different options were previously compiled" do
+    thor_mock.stub(:inside).with(src_dir).and_yield
+    thor_mock.should_receive(:run).with("./configure --prefix=#{build_dir} --option1 --option2")
+    thor_mock.should_receive(:run).with("make")
+    thor_mock.should_receive(:run).with("make install")
+    config_mock.stub(:compile_options).and_return("--option1 --option2")
+    Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return("--other-options")
+    Time.stub(:now).and_return(:fake_time)
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
+    Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
+  end
+
+  it "doesn't compile if the last compiled status indicates it has already compiled with the same options" do
     config_mock.should_receive(:compile_options).and_return("--option1 --option2")
+    Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
+    thor_mock.should_not_receive(:inside)
+    thor_mock.should_not_receive(:run)
+    Nginxtra::Status.should_not_receive(:[]=)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 end
