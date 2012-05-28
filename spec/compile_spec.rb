@@ -37,6 +37,7 @@ describe Nginxtra::Actions::Compile do
     Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
     thor_mock.should_not_receive(:inside)
     thor_mock.should_not_receive(:run)
+    thor_mock.should_receive(:say).with("nginx compilation is up to date")
     Nginxtra::Status.should_not_receive(:[]=)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end

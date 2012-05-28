@@ -10,7 +10,7 @@ module Nginxtra
 
       # Run the full compilation of nginx.
       def compile
-        return unless should_compile?
+        return up_to_date unless should_compile?
         configure
         make
         make "install"
@@ -43,6 +43,11 @@ module Nginxtra
       def update_last_compile!
         Nginxtra::Status[:last_compile_options] = @config.compile_options
         Nginxtra::Status[:last_compile_time] = Time.now
+      end
+
+      # Notify the user that the compilation is up to date
+      def up_to_date
+        @thor.say "nginx compilation is up to date"
       end
     end
   end
