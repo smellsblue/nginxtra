@@ -14,7 +14,7 @@ module Nginxtra
       # start time.
       def start
         compile
-        save_config
+        save_config_files
         start_nginx
         update_last_start
       end
@@ -24,9 +24,12 @@ module Nginxtra
         Nginxtra::Actions::Compile.new(@thor, @config).compile
       end
 
-      # Save nginx config contents to the proper config file path.
-      def save_config
-        File.write Nginxtra::Config.nginx_config, @config.config_contents
+      # Save nginx config files to the proper config file path.
+      def save_config_files
+        @config.files.each do |filename|
+          full_path = File.join Nginxtra::Config.config_dir, filename
+          File.write full_path, @config.file_contents(filename)
+        end
       end
 
       # Start nginx as a daemon.

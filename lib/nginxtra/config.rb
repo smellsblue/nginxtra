@@ -10,7 +10,7 @@ module Nginxtra
 
     def initialize
       @compile_options = []
-      @file_contents = []
+      @files = {}
       @@last_config = self
     end
 
@@ -52,73 +52,19 @@ module Nginxtra
 
     # Obtain the config file contents that will be used for
     # nginx.conf.
-    def config_contents
-      @file_contents.join "\n"
+    def file_contents(filename)
+      @files[filename].config_file_contents
     end
 
-    # Add a new line to the config.  A semicolon is added
-    # automatically.
-    #
-    # Example usage:
-    #   nginxtra.config do
-    #     config_line "user my_user"
-    #     config_line "worker_processes 42"
-    #   end
-    def config_line(contents)
-      @file_contents << "#{contents};"
+    # Define a new config file with the given filename and the block
+    # to define it with.
+    def file(filename, &block)
+      @files[filename] = Nginxtra::Config::ConfigFile.new(&block)
     end
 
-    # Add a new line to the config, but without a semicolon at the
-    # end.
-    #
-    # Example usage:
-    #   nginxtra.config do
-    #     bare_config_line "a line with no semicolon"
-    #   end
-    def bare_config_line(contents)
-      @file_contents << contents
-    end
-
-    # Add a new block to the config.  This will result in outputting
-    # something in the config like a server block, wrapped in { }.  A
-    # block should be passed in to this method, which will represent
-    # the contents of the block (if no block is given, the resulting
-    # config will have an empty block).
-    #
-    # Example usage:
-    #   nginxtra.config do
-    #     config_block "events" do
-    #       config_line "worker_connections 512"
-    #     end
-    #   end
-    def config_block(name)
-      @file_contents << "#{name} {"
-      yield if block_given?
-      @file_contents << "}"
-    end
-
-    # Arbitrary config can be specified as long as the name doesn't
-    # clash with one of the Config instance methods.
-    #
-    # Example usage:
-    #   nginxtra.config do
-    #     user "my_user"
-    #     worker_processes 42
-    #     events do
-    #       worker_connections 512
-    #     end
-    #   end
-    #
-    # Any arguments the the method will be joined with the method name
-    # with a space to produce the output.
-    def method_missing(method, *args, &block)
-      values = [method, *args].join " "
-
-      if block
-        config_block values, &block
-      else
-        config_line values
-      end
+    # Retrieve the files that have been defined.
+    def files
+      @files.keys
     end
 
     class << self
@@ -195,6 +141,84 @@ module Nginxtra
       # Retrieve the full path to the nginx executable.
       def nginx_executable
         File.join build_dir, "sbin/nginx"
+      end
+    end
+
+    # Represents a config file being defined by nginxtra.conf.rb.
+    class ConfigFile
+      def initialize(&block)
+        @file_contents = []
+        instance_eval &block
+      end
+
+      # The file contents that were defined for this config file.
+      def config_file_contents
+        @file_contents.join "\n"
+      end
+
+      # Add a new line to the config.  A semicolon is added
+      # automatically.
+      #
+      # Example usage:
+      #   nginxtra.config do
+      #     config_line "user my_user"
+      #     config_line "worker_processes 42"
+      #   end
+      def config_line(contents)
+        @file_contents << "#{contents};"
+      end
+
+      # Add a new line to the config, but without a semicolon at the
+      # end.
+      #
+      # Example usage:
+      #   nginxtra.config do
+      #     bare_config_line "a line with no semicolon"
+      #   end
+      def bare_config_line(contents)
+        @file_contents << contents
+      end
+
+      # Add a new block to the config.  This will result in outputting
+      # something in the config like a server block, wrapped in { }.  A
+      # block should be passed in to this method, which will represent
+      # the contents of the block (if no block is given, the resulting
+      # config will have an empty block).
+      #
+      # Example usage:
+      #   nginxtra.config do
+      #     config_block "events" do
+      #       config_line "worker_connections 512"
+      #     end
+      #   end
+      def config_block(name)
+        @file_contents << "#{name} {"
+        yield if block_given?
+        @file_contents << "}"
+      end
+
+      # Arbitrary config can be specified as long as the name doesn't
+      # clash with one of the Config instance methods.
+      #
+      # Example usage:
+      #   nginxtra.config do
+      #     user "my_user"
+      #     worker_processes 42
+      #     events do
+      #       worker_connections 512
+      #     end
+      #   end
+      #
+      # Any arguments the the method will be joined with the method name
+      # with a space to produce the output.
+      def method_missing(method, *args, &block)
+        values = [method, *args].join " "
+
+        if block
+          config_block values, &block
+        else
+          config_line values
+        end
       end
     end
   end

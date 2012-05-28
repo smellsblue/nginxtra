@@ -76,75 +76,100 @@ describe Nginxtra::Config do
   end
 
   describe "nginx.conf definition" do
-    it "supports empty definition" do
+    it "supports no file definition" do
       config = nginxtra.config do
       end
 
-      config.config_contents.should == ""
+      config.files.should == []
+    end
+
+    it "supports empty definition" do
+      config = nginxtra.config do
+        file "nginx.conf" do
+        end
+      end
+
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == ""
     end
 
     it "allows simple line definitions" do
       config = nginxtra.config do
-        config_line "user my_user"
-        config_line "worker_processes 42"
+        file "nginx.conf" do
+          config_line "user my_user"
+          config_line "worker_processes 42"
+        end
       end
 
-      config.config_contents.should == "user my_user;
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "user my_user;
 worker_processes 42;"
     end
 
     it "allows line definitions without semicolon" do
       config = nginxtra.config do
-        bare_config_line "user my_user"
-        bare_config_line "worker_processes 42"
+        file "nginx.conf" do
+          bare_config_line "user my_user"
+          bare_config_line "worker_processes 42"
+        end
       end
 
-      config.config_contents.should == "user my_user
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "user my_user
 worker_processes 42"
     end
 
     it "allows block definitions" do
       config = nginxtra.config do
-        config_block "events" do
-          config_line "worker_connections 4242"
+        file "nginx.conf" do
+          config_block "events" do
+            config_line "worker_connections 4242"
+          end
         end
       end
 
-      config.config_contents.should == "events {
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "events {
 worker_connections 4242;
 }"
     end
 
     it "supports empty block definitions" do
       config = nginxtra.config do
-        config_block "events"
+        file "nginx.conf" do
+          config_block "events"
+        end
       end
 
-      config.config_contents.should == "events {
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "events {
 }"
     end
 
     it "allows arbitrary blocks and lines" do
       config = nginxtra.config do
-        user "my_user"
-        worker_processes 42
+        file "nginx.conf" do
+          user "my_user"
+          worker_processes 42
 
-        events do
-          worker_connections 512
-        end
-
-        http do
-          location "= /robots.txt" do
-            access_log "off"
+          events do
+            worker_connections 512
           end
 
-          location "/" do
-            try_files "$uri", "$uri.html"
+          http do
+            location "= /robots.txt" do
+              access_log "off"
+            end
+
+            location "/" do
+              try_files "$uri", "$uri.html"
+            end
           end
         end
       end
 
-      config.config_contents.should == "user my_user;
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "user my_user;
 worker_processes 42;
 events {
 worker_connections 512;
@@ -157,6 +182,22 @@ location / {
 try_files $uri $uri.html;
 }
 }"
+    end
+
+    it "allows defining multiple config files" do
+      config = nginxtra.config do
+        file "nginx.conf" do
+          nginx_contents
+        end
+
+        file "other.conf" do
+          other_contents
+        end
+      end
+
+      config.files.should =~ ["other.conf", "nginx.conf"]
+      config.file_contents("nginx.conf").should == "nginx_contents;"
+      config.file_contents("other.conf").should == "other_contents;"
     end
   end
 
