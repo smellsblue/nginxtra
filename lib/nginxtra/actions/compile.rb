@@ -1,11 +1,14 @@
 module Nginxtra
   module Actions
     # The Nginxtra::Actions::Compile class encapsulates compiling
-    # nginx so it is ready with the specified compile options.
+    # nginx so it is ready with the specified compile options.  An
+    # optional option of :force can be passed with true to make
+    # compilation happen no matter what.
     class Compile
-      def initialize(thor, config)
+      def initialize(thor, config, options = {})
         @thor = thor
         @config = config
+        @options = options
       end
 
       # Run the full compilation of nginx.
@@ -35,6 +38,7 @@ module Nginxtra
       # if the last compile options equal the current options, or if
       # the force option was passed in at construction time.
       def should_compile?
+        return true if @options[:force]
         Nginxtra::Status[:last_compile_options] != @config.compile_options
       end
 
