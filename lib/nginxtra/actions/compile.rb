@@ -23,7 +23,7 @@ module Nginxtra
       # Configure nginx with the specified compile options.
       def configure
         @thor.inside Nginxtra::Config.src_dir do
-          @thor.run "./configure --prefix=#{Nginxtra::Config.build_dir} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
+          @thor.run "./configure --prefix=#{Nginxtra::Config.build_dir} --conf-path=#{Nginxtra::Config.nginx_config} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
         end
       end
 

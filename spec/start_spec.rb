@@ -5,7 +5,7 @@ describe Nginxtra::Actions::Start do
   let(:config_mock) { Object.new }
   let(:compile_mock) { Object.new }
   let(:base_dir) { File.absolute_path File.expand_path("../..", __FILE__) }
-  let(:config_file) { File.join(base_dir, ".nginx_conf") }
+  let(:config_file) { File.join(base_dir, "/conf/nginx.conf") }
   let(:build_dir) { File.join(base_dir, "build/nginx") }
   let(:nginx_conf_dir) { File.join(build_dir, "conf") }
   let(:executable) { File.join(base_dir, "build/nginx/sbin/nginx") }
@@ -16,9 +16,6 @@ describe Nginxtra::Actions::Start do
     compile_mock.should_receive(:compile)
     config_mock.should_receive(:config_contents).and_return("The config contents")
     File.should_receive(:write).with(config_file, "The config contents")
-    thor_mock.stub(:inside).with(nginx_conf_dir).and_yield
-    thor_mock.should_receive(:remove_file).with("nginx.conf")
-    thor_mock.should_receive(:create_link).with("nginx.conf", config_file)
     thor_mock.should_receive(:run).with("start-stop-daemon --start --quiet --pidfile #{pidfile} --exec #{executable}")
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_start_time, :fake_time)

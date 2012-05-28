@@ -15,7 +15,6 @@ module Nginxtra
       def start
         compile
         save_config
-        link_config
         start_nginx
         update_last_start
       end
@@ -28,14 +27,6 @@ module Nginxtra
       # Save nginx config contents to the proper config file path.
       def save_config
         File.write Nginxtra::Config.nginx_config, @config.config_contents
-      end
-
-      # Link the nginx config to the proper location.
-      def link_config
-        @thor.inside File.join(Nginxtra::Config.build_dir, "conf") do
-          @thor.remove_file "nginx.conf"
-          @thor.create_link "nginx.conf", Nginxtra::Config.nginx_config
-        end
       end
 
       # Start nginx as a daemon.
