@@ -17,7 +17,7 @@ module Nginxtra
         configure
         make
         make "install"
-        update_last_compile!
+        update_last_compile
       end
 
       # Configure nginx with the specified compile options.
@@ -44,7 +44,7 @@ module Nginxtra
 
       # Update Nginxtra::Status with the last compile time and
       # options.
-      def update_last_compile!
+      def update_last_compile
         Nginxtra::Status[:last_compile_options] = @config.compile_options
         Nginxtra::Status[:last_compile_time] = Time.now
       end

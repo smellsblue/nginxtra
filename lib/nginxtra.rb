@@ -1,4 +1,5 @@
 require "nginxtra/actions/compile"
+require "nginxtra/actions/start"
 require "nginxtra/cli"
 require "nginxtra/config"
 require "nginxtra/error"

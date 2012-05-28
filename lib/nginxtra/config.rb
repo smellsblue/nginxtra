@@ -4,6 +4,8 @@ module Nginxtra
   # options of nginx and the config file contents.
   class Config
     FILENAME = "nginxtra.conf.rb".freeze
+    NGINX_CONF_FILENAME = ".nginx_conf".freeze
+    NGINX_PIDFILE_FILENAME = ".nginx_pid".freeze
     @@last_config = nil
 
     def initialize
@@ -169,6 +171,23 @@ module Nginxtra
       # Retrieve the directory where nginx is built into.
       def build_dir
         File.join base_dir, "build/nginx"
+      end
+
+      # The full path to the nginx.conf file that is fed to nginx,
+      # based on nginxtra.conf.rb.
+      def nginx_config
+        File.join base_dir, NGINX_CONF_FILENAME
+      end
+
+      # The full path to the nginx pidfile that is used for running
+      # nginx.
+      def nginx_pidfile
+        File.join base_dir, NGINX_PIDFILE_FILENAME
+      end
+
+      # Retrieve the full path to the nginx executable.
+      def nginx_executable
+        File.join build_dir, "sbin/nginx"
       end
     end
   end
