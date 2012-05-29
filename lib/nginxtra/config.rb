@@ -9,6 +9,7 @@ module Nginxtra
     @@last_config = nil
 
     def initialize
+      @requires_root = false
       @compile_options = []
       @files = {}
       @@last_config = self
@@ -22,6 +23,20 @@ module Nginxtra
     def config(&block)
       instance_eval &block
       self
+    end
+
+    # Notify nginxtra that root access is needed to run the daemon
+    # commands.  Sudo will automatically be used if the current user
+    # isn't root.
+    def require_root!
+      @requires_root = true
+    end
+
+    # Retrieve whether root is required to run the daemon.  This will
+    # return true only if require_root! was invoked from the config
+    # file.
+    def require_root?
+      @requires_root
     end
 
     # Obtain the compile options that have been configured.

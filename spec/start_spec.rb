@@ -20,6 +20,7 @@ describe Nginxtra::Actions::Start do
     thor_mock.should_receive(:remove_file).with("mime_types.conf")
     thor_mock.should_receive(:create_file).with("nginx.conf", "The nginx contents")
     thor_mock.should_receive(:create_file).with("mime_types.conf", "The mime_types contents")
+    config_mock.should_receive(:require_root?).and_return(false)
     thor_mock.should_receive(:run).with("start-stop-daemon --start --quiet --pidfile #{pidfile} --exec #{executable}")
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_start_time, :fake_time)
