@@ -26,5 +26,10 @@ describe Nginxtra::Actions::Start do
     Nginxtra::Actions::Start.new(thor_mock, config_mock).start
   end
 
-  it "throws an exception if nginx.conf is not specified"
+  it "throws an exception if nginx.conf is not specified" do
+    Nginxtra::Actions::Compile.should_receive(:new).with(thor_mock, config_mock).and_return(compile_mock)
+    compile_mock.should_receive(:compile)
+    config_mock.should_receive(:files).and_return(["mime_types.conf"])
+    lambda { Nginxtra::Actions::Start.new(thor_mock, config_mock).start }.should raise_error(Nginxtra::Error::InvalidConfig)
+  end
 end
