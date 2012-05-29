@@ -28,5 +28,15 @@ module Nginxtra
     def stop
       Nginxtra::Actions::Stop.new(self, Nginxtra::Config.require!).stop
     end
+
+    desc "restart", "Restart nginx"
+    def restart
+      Nginxtra::Actions::Restart.new(self, Nginxtra::Config.require!).restart
+    end
+
+    desc "reload", "Reload nginx"
+    def reload
+      Nginxtra::Actions::Reload.new(self, Nginxtra::Config.require!).reload
+    end
   end
 end

@@ -36,7 +36,7 @@ module Nginxtra
 
       # Start nginx as a daemon.
       def start_nginx
-        @thor.run "start-stop-daemon --start --quiet --pidfile #{Nginxtra::Config.nginx_pidfile} --exec #{Nginxtra::Config.nginx_executable}"
+        daemon :start
       end
 
       # Update the last nginx start time.

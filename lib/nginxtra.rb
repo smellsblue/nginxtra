@@ -1,5 +1,7 @@
 require "nginxtra/action"
 require "nginxtra/actions/compile"
+require "nginxtra/actions/reload"
+require "nginxtra/actions/restart"
 require "nginxtra/actions/start"
 require "nginxtra/actions/stop"
 require "nginxtra/cli"

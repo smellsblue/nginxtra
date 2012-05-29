@@ -6,7 +6,7 @@ module Nginxtra
 
       # Stop nginx and note the new last stop time.
       def stop
-        @thor.run "start-stop-daemon --stop --quiet --pidfile #{Nginxtra::Config.nginx_pidfile} --exec #{Nginxtra::Config.nginx_executable}"
+        daemon :stop
         Nginxtra::Status[:last_stop_time] = Time.now
       end
     end
