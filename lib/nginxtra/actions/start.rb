@@ -26,9 +26,11 @@ module Nginxtra
 
       # Save nginx config files to the proper config file path.
       def save_config_files
-        @config.files.each do |filename|
-          full_path = File.join Nginxtra::Config.config_dir, filename
-          File.write full_path, @config.file_contents(filename)
+        @thor.inside Nginxtra::Config.config_dir do
+          @config.files.each do |filename|
+            @thor.remove_file filename
+            @thor.create_file filename, @config.file_contents(filename)
+          end
         end
       end
 
