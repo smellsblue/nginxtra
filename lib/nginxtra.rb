@@ -1,3 +1,4 @@
+require "nginxtra/action"
 require "nginxtra/actions/compile"
 require "nginxtra/actions/start"
 require "nginxtra/actions/stop"

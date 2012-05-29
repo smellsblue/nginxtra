@@ -4,10 +4,7 @@ module Nginxtra
     # with the specified configuration file.  It also makes sure that
     # nginx has been compiled with the correct options.
     class Start
-      def initialize(thor, config)
-        @thor = thor
-        @config = config
-      end
+      include Nginxtra::Action
 
       # First, ensure nginx has been compiled, then make sure
       # configuration is correct, and finally start nginx and note the

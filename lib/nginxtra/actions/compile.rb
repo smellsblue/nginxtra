@@ -5,11 +5,7 @@ module Nginxtra
     # optional option of :force can be passed with true to make
     # compilation happen no matter what.
     class Compile
-      def initialize(thor, config, options = {})
-        @thor = thor
-        @config = config
-        @options = options
-      end
+      include Nginxtra::Action
 
       # Run the full compilation of nginx.
       def compile

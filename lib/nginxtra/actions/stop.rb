@@ -2,10 +2,7 @@ module Nginxtra
   module Actions
     # The Nginxtra::Actions::Stop class encapsulates stopping nginx.
     class Stop
-      def initialize(thor, config)
-        @thor = thor
-        @config = config
-      end
+      include Nginxtra::Action
 
       # Stop nginx and note the new last stop time.
       def stop
