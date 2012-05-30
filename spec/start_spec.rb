@@ -4,9 +4,9 @@ describe Nginxtra::Actions::Start do
   let(:thor_mock) { Object.new }
   let(:config_mock) { Object.new }
   let(:compile_mock) { Object.new }
-  let(:base_dir) { File.absolute_path File.expand_path("../..", __FILE__) }
+  let(:base_dir) { File.absolute_path File.expand_path("~/.nginxtra") }
   let(:nginx_conf_dir) { File.join(base_dir, "conf") }
-  let(:executable) { File.join(base_dir, "build/nginx/sbin/nginx") }
+  let(:executable) { File.join(base_dir, "nginx-#{Nginxtra::Config.nginx_version}/build/sbin/nginx") }
   let(:pidfile) { File.join(base_dir, ".nginx_pid") }
 
   it "compiles then starts nginx" do

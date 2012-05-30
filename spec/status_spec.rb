@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Nginxtra::Status do
-  let(:base_dir) { File.absolute_path File.expand_path("../..", __FILE__) }
+  let(:base_dir) { File.absolute_path File.expand_path("~/.nginxtra") }
   let(:status_file) { File.join(base_dir, ".nginxtra_status") }
   before { Nginxtra::Status.class_variable_set :@@status, nil }
 

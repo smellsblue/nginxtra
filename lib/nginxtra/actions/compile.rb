@@ -10,16 +10,22 @@ module Nginxtra
       # Run the full compilation of nginx.
       def compile
         return up_to_date unless should_compile?
+        copy_to_base
         configure
         make
         make "install"
         update_last_compile
       end
 
+      # Copy the nginx source directory to the base directory.
+      def copy_to_base
+        @thor.directory "src/nginx", Nginxtra::Config.src_dir
+      end
+
       # Configure nginx with the specified compile options.
       def configure
         @thor.inside Nginxtra::Config.src_dir do
-          @thor.run "./configure --prefix=#{Nginxtra::Config.build_dir} --conf-path=#{Nginxtra::Config.nginx_config} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
+          @thor.run "sh configure --prefix=#{Nginxtra::Config.build_dir} --conf-path=#{Nginxtra::Config.nginx_config} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
         end
       end
 

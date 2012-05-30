@@ -124,20 +124,48 @@ module Nginxtra
         last_config
       end
 
+      # The path to the VERSION file in the gem.
+      def version_file
+        File.join gem_dir, "VERSION"
+      end
+
+      # The current version of nginxtra.
+      def version
+        @version ||= File.read(version_file).strip
+      end
+
+      # The corresponding nginx version (based on the nginxtra
+      # version).
+      def nginx_version
+        @version ||= version.split(".").take(3).join(".")
+      end
+
+      # Retrieve the base dir of nginxtra (located just above lib,
+      # probably in your gems/nginxtra-xxx directory).
+      def gem_dir
+        File.absolute_path File.expand_path("../../..", __FILE__)
+      end
+
       # Retrieve the base dir of nginxtra (located just above lib,
       # probably in your gems/nginxtra-xxx directory).
       def base_dir
-        File.absolute_path File.expand_path("../../..", __FILE__)
+        File.absolute_path File.expand_path("~/.nginxtra")
+      end
+
+      # The base nginx dir versioned to the current version inside the
+      # base dir.
+      def base_nginx_dir
+        File.join base_dir, "nginx-#{nginx_version}"
       end
 
       # Retrieve the directory where nginx source is located.
       def src_dir
-        File.join base_dir, "src/nginx"
+        File.join base_nginx_dir, "src"
       end
 
       # Retrieve the directory where nginx is built into.
       def build_dir
-        File.join base_dir, "build/nginx"
+        File.join base_nginx_dir, "build"
       end
 
       # The path to the config directory where nginx config files are

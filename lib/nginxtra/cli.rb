@@ -48,5 +48,11 @@ module Nginxtra
     def require_config!
       Nginxtra::Config.require! options["config"]
     end
+
+    class << self
+      def source_root
+        File.absolute_path File.expand_path("../../..", __FILE__)
+      end
+    end
   end
 end
