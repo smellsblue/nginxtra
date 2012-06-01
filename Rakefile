@@ -16,7 +16,16 @@ end
 
 task :default => :install
 
-task :build do
+task :generate do
+  File.write File.expand_path("../bin/nginxtra", __FILE__), %{#!/usr/bin/env ruby
+require "rubygems"
+gem "nginxtra", "= #{Nginxtra.version}"
+require "nginxtra"
+Nginxtra::CLI.start
+}
+end
+
+task :build => :generate do
   puts "Building nginxtra"
   system_exec "gem build nginxtra.gemspec"
 end

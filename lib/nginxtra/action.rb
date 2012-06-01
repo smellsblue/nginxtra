@@ -13,8 +13,8 @@ module Nginxtra
     end
 
     private
-    def sudo
-      "sudo " if @config.require_root? && Process.uid != 0
+    def sudo(force = false)
+      "sudo " if (force || @config.require_root?) && Process.uid != 0
     end
   end
 end

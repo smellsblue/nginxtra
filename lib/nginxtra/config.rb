@@ -107,6 +107,11 @@ module Nginxtra
         config if File.exists? config
       end
 
+      # Retrieve the path to the config file that was loaded.
+      def loaded_config_path
+        @loaded_config_path
+      end
+
       # Determine where the config file is and require it.  Return the
       # resulting config loaded by the path.
       # Nginxtra::Error::MissingConfig will be raised if the config
@@ -121,6 +126,7 @@ module Nginxtra
         raise Nginxtra::Error::MissingConfig.new("Cannot find #{FILENAME} to configure nginxtra!") unless config_path
         require config_path
         raise Nginxtra::Error::InvalidConfig.new("No configuration is specified in #{config_path}!") unless last_config
+        @loaded_config_path = config_path
         last_config
       end
 
@@ -146,10 +152,17 @@ module Nginxtra
         File.absolute_path File.expand_path("../../..", __FILE__)
       end
 
-      # Retrieve the base dir of nginxtra (located just above lib,
-      # probably in your gems/nginxtra-xxx directory).
+      # Set the base directory (retrieved from base_dir).  If this is
+      # not called, it will default to the ~/.nginxtra directory.
+      # This will do nothing if the value is nil.
+      def base_dir=(value)
+        @base_dir = value if value
+      end
+
+      # Retrieve the base dir of nginxtra stored files (located in
+      # ~/.nginxtra, unless overridden via the --basedir option).
       def base_dir
-        File.absolute_path File.expand_path("~/.nginxtra")
+        @base_dir ||= File.absolute_path File.expand_path("~/.nginxtra")
       end
 
       # The base nginx dir versioned to the current version inside the
