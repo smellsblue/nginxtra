@@ -28,8 +28,7 @@ module Nginxtra
 
         @thor.inside Nginxtra::Config.config_dir do
           files.each do |filename|
-            @thor.remove_file filename
-            @thor.create_file filename, @config.file_contents(filename)
+            @thor.create_file filename, @config.file_contents(filename), :force => true
           end
         end
       end

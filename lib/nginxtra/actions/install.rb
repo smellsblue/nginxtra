@@ -20,12 +20,11 @@ module Nginxtra
         filename = "etc.init.d.nginxtra"
 
         @thor.inside Nginxtra::Config.base_dir do
-          @thor.remove_file filename
           @thor.create_file filename, %{#!/bin/sh
 export GEM_HOME="#{ENV["GEM_HOME"]}"
 export GEM_PATH="#{ENV["GEM_PATH"]}"
 #{`which ruby`.strip} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}"
-}
+}, :force => true
           @thor.chmod filename, 0755
         end
 
