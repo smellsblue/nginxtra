@@ -25,14 +25,14 @@ module Nginxtra
       # Configure nginx with the specified compile options.
       def configure
         @thor.inside Nginxtra::Config.src_dir do
-          @thor.run "sh configure --prefix=#{Nginxtra::Config.build_dir} --conf-path=#{Nginxtra::Config.nginx_config} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
+          run! "sh configure --prefix=#{Nginxtra::Config.build_dir} --conf-path=#{Nginxtra::Config.nginx_config} --pid-path=#{Nginxtra::Config.nginx_pidfile} #{@config.compile_options}"
         end
       end
 
       # Run make against the configured nginx.
       def make(*args)
         @thor.inside Nginxtra::Config.src_dir do
-          @thor.run ["make", *args].join(" ")
+          run! ["make", *args].join(" ")
         end
       end
 

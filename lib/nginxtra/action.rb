@@ -8,10 +8,15 @@ module Nginxtra
     # Run a daemon command to start or stop the nginx process.
     def daemon(action, additional_options = nil)
       action = "#{action} #{additional_options}" if additional_options
-      @thor.run "#{sudo}start-stop-daemon --#{action} --quiet --pidfile #{Nginxtra::Config.nginx_pidfile} --exec #{Nginxtra::Config.nginx_executable}"
+      run! "#{sudo}start-stop-daemon --#{action} --quiet --pidfile #{Nginxtra::Config.nginx_pidfile} --exec #{Nginxtra::Config.nginx_executable}"
     end
 
     private
+    def run!(command)
+      @thor.run command
+      raise Nginxtra::Error::RunFailed.new("The last run command failed") unless $?.success?
+    end
+
     def force?
       @thor.options["force"]
     end
