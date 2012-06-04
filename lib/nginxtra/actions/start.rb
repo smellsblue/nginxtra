@@ -11,6 +11,7 @@ module Nginxtra
       # start time.
       def start
         compile
+        install
         save_config_files
         start_nginx
         update_last_start
@@ -19,6 +20,11 @@ module Nginxtra
       # Invoke nginx compilation, to ensure it is up to date.
       def compile
         Nginxtra::Actions::Compile.new(@thor, @config).compile
+      end
+
+      # Invoke nginxtra installation, but only if the user allows it.
+      def install
+        Nginxtra::Actions::Install.new(@thor, @config).optional_install
       end
 
       # Save nginx config files to the proper config file path.

@@ -6,6 +6,16 @@ module Nginxtra
     class Install
       include Nginxtra::Action
 
+      # Run the installation of nginxtra, but only after first
+      # prompting if the user wants the install.  This will do nothing
+      # if run with --non-interactive mode.
+      def optional_install
+        return installation_skipped if non_interactive?
+        return up_to_date unless should_install?
+        return unless requesting_install?
+        install
+      end
+
       # Run the installation of nginxtra.
       def install
         return up_to_date unless should_install?
@@ -45,7 +55,12 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
 
       # Notify the user that installation should be up to date.
       def up_to_date
-        @thor.say "nginx installation is up to date"
+        @thor.say "nginxtra installation is up to date"
+      end
+
+      # Notify to the user that installation is being skipped.
+      def installation_skipped
+        @thor.say "skipping nginxtra installation"
       end
 
       # Mark the last installed version and last installed time (the
@@ -54,6 +69,12 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
       def update_last_install
         Nginxtra::Status[:last_install_version] = Nginxtra::Config.version
         Nginxtra::Status[:last_install_time] = Time.now
+      end
+
+      # Ask the user if they wish to install.  Return whether the user
+      # requests the install.
+      def requesting_install?
+        @thor.yes? "Would you like to install nginxtra?"
       end
 
       # Determine if the install should proceed.  This will be true if

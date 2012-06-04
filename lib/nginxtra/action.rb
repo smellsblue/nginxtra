@@ -17,7 +17,11 @@ module Nginxtra
     end
 
     def interactive?
-      !@thor.options["non-interactive"]
+      !non_interactive?
+    end
+
+    def non_interactive?
+      @thor.options["non-interactive"]
     end
 
     def sudo(force = false)
