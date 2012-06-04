@@ -39,6 +39,16 @@ module Nginxtra
       @requires_root
     end
 
+    # Require passenger.  This will include http_ssl_module,
+    # http_gzip_static_module, add a Wno-error compilation option, and
+    # add the passenger module to the proper passenger path.
+    def require_passenger!
+      compile_option %{--with-http_ssl_module}
+      compile_option %{--with-http_gzip_static_module}
+      compile_option %{--with-cc-opt=-Wno-error}
+      compile_option %{--add-module="#{File.join Nginxtra::Config.passenger_spec.gem_dir, "ext/nginx"}"}
+    end
+
     # Obtain the compile options that have been configured.
     def compile_options
       @compile_options.join " "
@@ -203,6 +213,20 @@ module Nginxtra
       def nginx_executable
         File.join build_dir, "sbin/nginx"
       end
+
+      # Retrieve the path to ruby.
+      def ruby_path
+        `which ruby`.strip
+      end
+
+      # Cache and retrieve the gemspec for passenger, if it exists.
+      # An InvalidConfig exception will be raised if passenger cannot
+      # be found.
+      def passenger_spec
+        @passenger_spec ||= Gem::Specification.find_by_name("passenger").tap do |spec|
+          raise InvalidConfig.new("You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
+        end
+      end
     end
 
     # Represents a config file being defined by nginxtra.conf.rb.
@@ -280,6 +304,22 @@ module Nginxtra
         else
           config_line values
         end
+      end
+
+      # Output the passenger_root line, including the proper passenger
+      # gem path.
+      def passenger_root!
+        config_line %{passenger_root #{Nginxtra::Config.passenger_spec.gem_dir}}
+      end
+
+      # Output the passenger_ruby, including the proper ruby path.
+      def passenger_ruby!
+        config_line %{passenger_ruby #{Nginxtra::Config.ruby_path}}
+      end
+
+      # Output that passenger is enabled in this block.
+      def passenger_on!
+        config_line %{passenger_enabled on}
       end
     end
   end
