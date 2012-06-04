@@ -21,14 +21,26 @@ module Nginxtra
 
         @thor.inside Nginxtra::Config.base_dir do
           @thor.create_file filename, %{#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          nginxtra
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts nginxtra, which is a wrapper around the nginx web server
+# Description:       starts nginxtra which starts nginx using start-stop-daemon
+### END INIT INFO
+
 export GEM_HOME="#{ENV["GEM_HOME"]}"
 export GEM_PATH="#{ENV["GEM_PATH"]}"
-#{`which ruby`.strip} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}"
+#{`which ruby`.strip} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}" --non-interactive
 }, :force => true
           @thor.chmod filename, 0755
         end
 
         @thor.run %{#{sudo true}rm /etc/init.d/nginxtra && #{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra}
+        @thor.run %{#{sudo true}update-rc.d nginxtra defaults}
       end
 
       # Notify the user that installation should be up to date.

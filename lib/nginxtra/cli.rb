@@ -4,6 +4,9 @@ module Nginxtra
   class CLI < Thor
     include Thor::Actions
 
+    class_option "force", :type => :boolean, :banner => "Force a task to happen, regardless of what nginxtra thinks", :aliases => "-f"
+    class_option "non-interactive", :type => :boolean, :banner => "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", :aliases => "-I"
+
     desc "compile", "Compiles nginx based on nginxtra.conf.rb"
     long_desc "
       Compile nginx with the compilation options specified in nginxtra.conf.rb.  If it
@@ -11,7 +14,6 @@ module Nginxtra
       that start will already run compilation, so compilation is not really needed to
       be executed directly.  However, you can force recompilation by running this task
       with the --force option."
-    method_option "force", :type => :boolean, :banner => "Force compilation to happen", :aliases => "-f"
     method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def compile
@@ -24,7 +26,6 @@ module Nginxtra
       system is shut down.  Before installing, it will be checked if it had been
       already installed with this version of nginxtra.  If it was already installed,
       installation will be skipped unless the --force option is given."
-    method_option "force", :type => :boolean, :banner => "Force installation to happen", :aliases => "-f"
     method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def install

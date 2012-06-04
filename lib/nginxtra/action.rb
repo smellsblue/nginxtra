@@ -16,6 +16,10 @@ module Nginxtra
       @thor.options["force"]
     end
 
+    def interactive?
+      !@thor.options["non-interactive"]
+    end
+
     def sudo(force = false)
       "sudo " if (force || @config.require_root?) && Process.uid != 0
     end
