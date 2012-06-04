@@ -1,9 +1,8 @@
 module Nginxtra
   module Action
-    def initialize(thor, config, options = {})
+    def initialize(thor, config)
       @thor = thor
       @config = config
-      @options = options
     end
 
     # Run a daemon command to start or stop the nginx process.
@@ -13,6 +12,10 @@ module Nginxtra
     end
 
     private
+    def force?
+      @thor.options["force"]
+    end
+
     def sudo(force = false)
       "sudo " if (force || @config.require_root?) && Process.uid != 0
     end

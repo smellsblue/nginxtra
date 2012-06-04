@@ -16,6 +16,7 @@ describe Nginxtra::Actions::Compile do
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
+    thor_mock.stub(:options).and_return({ "force" => false })
     config_mock.stub(:compile_options).and_return("--option1 --option2")
     Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return(nil)
     Time.stub(:now).and_return(:fake_time)
@@ -30,6 +31,7 @@ describe Nginxtra::Actions::Compile do
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
+    thor_mock.stub(:options).and_return({ "force" => false })
     config_mock.stub(:compile_options).and_return("--option1 --option2")
     Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return("--other-options")
     Time.stub(:now).and_return(:fake_time)
@@ -43,6 +45,7 @@ describe Nginxtra::Actions::Compile do
     Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
     thor_mock.should_not_receive(:inside)
     thor_mock.should_not_receive(:run)
+    thor_mock.stub(:options).and_return({ "force" => false })
     thor_mock.should_receive(:say).with("nginx compilation is up to date")
     Nginxtra::Status.should_not_receive(:[]=)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
@@ -54,11 +57,12 @@ describe Nginxtra::Actions::Compile do
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2")
     thor_mock.should_receive(:run).with("make")
     thor_mock.should_receive(:run).with("make install")
+    thor_mock.stub(:options).and_return({ "force" => true })
     config_mock.stub(:compile_options).and_return("--option1 --option2")
     Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
-    Nginxtra::Actions::Compile.new(thor_mock, config_mock, :force => true).compile
+    Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 end

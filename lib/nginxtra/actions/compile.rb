@@ -40,7 +40,7 @@ module Nginxtra
       # if the last compile options equal the current options, or if
       # the force option was passed in at construction time.
       def should_compile?
-        return true if @options[:force]
+        return true if force?
         Nginxtra::Status[:last_compile_options] != @config.compile_options
       end
 

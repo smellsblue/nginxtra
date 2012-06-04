@@ -15,7 +15,7 @@ module Nginxtra
     method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def compile
-      Nginxtra::Actions::Compile.new(self, prepare_config!, :force => options["force"]).compile
+      Nginxtra::Actions::Compile.new(self, prepare_config!).compile
     end
 
     desc "install", "Installs nginxtra"
@@ -28,7 +28,7 @@ module Nginxtra
     method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def install
-      Nginxtra::Actions::Install.new(self, prepare_config!, :force => options["force"]).install
+      Nginxtra::Actions::Install.new(self, prepare_config!).install
     end
 
     desc "start", "Start nginx with configuration defined in nginxtra.conf.rb"

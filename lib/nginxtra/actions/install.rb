@@ -48,7 +48,7 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
       # the force option was used, or if this version of nginxtra
       # differs from the last version installed.
       def should_install?
-        return true if @options[:force]
+        return true if force?
         Nginxtra::Status[:last_install_version] != Nginxtra::Config.version
       end
     end
