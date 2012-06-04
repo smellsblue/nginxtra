@@ -153,7 +153,7 @@ module Nginxtra
       # The corresponding nginx version (based on the nginxtra
       # version).
       def nginx_version
-        @version ||= version.split(".").take(3).join(".")
+        @nginx_version ||= version.split(".").take(3).join(".")
       end
 
       # Retrieve the base dir of nginxtra (located just above lib,
