@@ -20,6 +20,7 @@ module Nginxtra
       def install
         return up_to_date unless should_install?
         create_etc_script
+        remember_config_location
         update_last_install
       end
 
@@ -61,6 +62,15 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
       # Notify to the user that installation is being skipped.
       def installation_skipped
         @thor.say "skipping nginxtra installation"
+      end
+
+      # Remember the last config location, and use it unless the
+      # config is explicitly passed in.
+      def remember_config_location
+        # Absolute path somehow turns the path to a binary string when
+        # output to Yaml... so make it a string so it stays ascii
+        # readable.
+        Nginxtra::Status[:remembered_config] = Nginxtra::Config.loaded_config_path.to_s
       end
 
       # Mark the last installed version and last installed time (the

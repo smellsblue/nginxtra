@@ -129,11 +129,14 @@ module Nginxtra
       def require!(config_path = nil)
         if config_path
           config_path = File.absolute_path config_path
+        elsif Nginxtra::Status[:remembered_config]
+          config_path = File.absolute_path Nginxtra::Status[:remembered_config]
         else
           config_path = path
         end
 
         raise Nginxtra::Error::MissingConfig.new("Cannot find #{FILENAME} to configure nginxtra!") unless config_path
+        raise Nginxtra::Error::MissingConfig.new("Missing file #{config_path} to configure nginxtra!") unless File.exists?(config_path)
         require config_path
         raise Nginxtra::Error::InvalidConfig.new("No configuration is specified in #{config_path}!") unless last_config
         @loaded_config_path = config_path

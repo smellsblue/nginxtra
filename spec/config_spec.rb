@@ -257,6 +257,7 @@ try_files $uri $uri.html;
         config = nginxtra
         nil
       end
+      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
       Nginxtra::Config.require!.should == config
     end
 
@@ -271,6 +272,7 @@ try_files $uri $uri.html;
         nil
       end
       Nginxtra::Config.should_receive(:last_config).and_return(nil)
+      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
       lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::InvalidConfig)
     end
 
@@ -281,6 +283,7 @@ try_files $uri $uri.html;
         config = nginxtra
         nil
       end
+      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
       Nginxtra::Config.require!("/a/fake/path").should == config
     end
   end

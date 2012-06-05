@@ -68,7 +68,9 @@ module Nginxtra
     private
     def prepare_config!
       Nginxtra::Config.base_dir = options["basedir"]
-      Nginxtra::Config.require! options["config"]
+      result = Nginxtra::Config.require! options["config"]
+      say "Using config #{Nginxtra::Config.loaded_config_path}"
+      result
     end
 
     class << self
