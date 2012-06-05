@@ -10,8 +10,12 @@ module Nginxtra
       # configuration is correct, and finally start nginx and note the
       # start time.
       def start
-        compile
-        install
+        without_force do
+          compile
+          install
+        end
+
+        return no_need_to_start unless should_start?
         save_config_files
         start_nginx
         update_last_start
@@ -37,6 +41,18 @@ module Nginxtra
             @thor.create_file filename, @config.file_contents(filename), :force => true
           end
         end
+      end
+
+      # Notify the user that nginx is already started.
+      def no_need_to_start
+        @thor.say "nginx is already started"
+      end
+
+      # Determine if we should even bother starting.  This returns
+      # true if the user forced, or if nginx is already running.
+      def should_start?
+        return true if force?
+        !Nginxtra::Config.nginx_running?
       end
 
       # Start nginx as a daemon.

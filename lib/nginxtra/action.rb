@@ -1,5 +1,7 @@
 module Nginxtra
   module Action
+    @@ignore_force = false
+
     def initialize(thor, config)
       @thor = thor
       @config = config
@@ -17,7 +19,15 @@ module Nginxtra
       raise Nginxtra::Error::RunFailed.new("The last run command failed") unless $?.success?
     end
 
+    def without_force
+      @@ignore_force = true
+      yield
+    ensure
+      @@ignore_force = false
+    end
+
     def force?
+      return false if @@ignore_force
       @thor.options["force"]
     end
 

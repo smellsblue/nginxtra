@@ -230,6 +230,16 @@ module Nginxtra
           raise InvalidConfig.new("You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
         end
       end
+
+      # Determine if nginx is running, based on the pidfile.
+      def nginx_running?
+        return false unless File.exists? nginx_pidfile
+        pid = File.read(nginx_pidfile).strip
+        Process.getpgid pid.to_i
+        true
+      rescue Errno::ESRCH
+        false
+      end
     end
 
     # Represents a config file being defined by nginxtra.conf.rb.
