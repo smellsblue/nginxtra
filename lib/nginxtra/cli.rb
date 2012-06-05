@@ -6,6 +6,8 @@ module Nginxtra
 
     class_option "force", :type => :boolean, :banner => "Force a task to happen, regardless of what nginxtra thinks", :aliases => "-f"
     class_option "non-interactive", :type => :boolean, :banner => "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", :aliases => "-I"
+    class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
+    class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
 
     desc "compile", "Compiles nginx based on nginxtra.conf.rb"
     long_desc "
@@ -14,8 +16,6 @@ module Nginxtra
       that start will already run compilation, so compilation is not really needed to
       be executed directly.  However, you can force recompilation by running this task
       with the --force option."
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def compile
       Nginxtra::Actions::Compile.new(self, prepare_config!).compile
     end
@@ -26,8 +26,6 @@ module Nginxtra
       system is shut down.  Before installing, it will be checked if it had been
       already installed with this version of nginxtra.  If it was already installed,
       installation will be skipped unless the --force option is given."
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def install
       Nginxtra::Actions::Install.new(self, prepare_config!).install
     end
@@ -37,30 +35,22 @@ module Nginxtra
       Start nginx based on nginxtra.conf.rb.  If nginx has not yet been compiled, it
       will be compiled.  The configuration for nginx will automatically be handled by
       nginxtra so it matches what is defined in nginxtra.conf.rb."
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def start
       Nginxtra::Actions::Start.new(self, prepare_config!).start
     end
 
     desc "stop", "Stop nginx"
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def stop
       Nginxtra::Actions::Stop.new(self, prepare_config!).stop
     end
 
     desc "restart", "Restart nginx"
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def restart
       Nginxtra::Actions::Restart.new(self, prepare_config!).restart
     end
     map "force-reload" => "restart"
 
     desc "reload", "Reload nginx"
-    method_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    method_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     def reload
       Nginxtra::Actions::Reload.new(self, prepare_config!).reload
     end
