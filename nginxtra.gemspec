@@ -11,6 +11,6 @@ Gem::Specification.new do |s|
   s.require_path   = "lib"
   s.bindir         = "bin"
   s.executables    = ["nginxtra"]
-  s.homepage       = "http://reasonnumber.com/cartoonist"
+  s.homepage       = "http://reasonnumber.com/nginxtra"
   s.add_dependency "thor", "~> 0.15.0"
 end

@@ -55,6 +55,11 @@ module Nginxtra
       Nginxtra::Actions::Reload.new(self, prepare_config!).reload
     end
 
+    desc "status", "Check if nginx is running"
+    def status
+      Nginxtra::Actions::Status.new(self, prepare_config!).status
+    end
+
     private
     def prepare_config!
       Nginxtra::Config.base_dir = options["basedir"]
