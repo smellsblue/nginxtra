@@ -37,11 +37,24 @@ module Nginxtra
       end
 
       # Determine if compiling should happen.  This will return false
-      # if the last compile options equal the current options, or if
-      # the force option was passed in at construction time.
+      # if the last compile options equal the current options and the
+      # last compile version is the same as the current nginx version,
+      # or if the force option was passed in at construction time.
       def should_compile?
         return true if force?
+        different_compile_options? || different_nginx_version?
+      end
+
+      # Determine if the compile options differ from those last
+      # compiled with.
+      def different_compile_options?
         Nginxtra::Status[:last_compile_options] != @config.compile_options
+      end
+
+      # Determine if the last nginx compiled version is different from
+      # the current nginx version.
+      def different_nginx_version?
+        Nginxtra::Status[:last_compile_version] != Nginxtra::Config.nginx_version
       end
 
       # Update Nginxtra::Status with the last compile time and
@@ -49,6 +62,7 @@ module Nginxtra
       def update_last_compile
         Nginxtra::Status[:last_compile_options] = @config.compile_options
         Nginxtra::Status[:last_compile_time] = Time.now
+        Nginxtra::Status[:last_compile_version] = Nginxtra::Config.nginx_version
       end
 
       # Notify the user that the compilation is up to date

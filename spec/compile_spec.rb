@@ -22,6 +22,7 @@ describe Nginxtra::Actions::Compile do
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 
@@ -37,12 +38,14 @@ describe Nginxtra::Actions::Compile do
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 
   it "doesn't compile if the last compiled status indicates it has already compiled with the same options" do
     config_mock.should_receive(:compile_options).and_return("--option1 --option2")
     Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
+    Nginxtra::Status.stub(:[]).with(:last_compile_version).and_return(Nginxtra::Config.nginx_version)
     thor_mock.should_not_receive(:inside)
     thor_mock.should_not_receive(:run) { RunMock.success }
     thor_mock.stub(:options).and_return({ "force" => false })
@@ -63,6 +66,7 @@ describe Nginxtra::Actions::Compile do
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
     Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
+    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 end
