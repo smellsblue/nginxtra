@@ -3,6 +3,7 @@ module Nginxtra
     def initialize(output)
       @converted = false
       @output = output
+      @indentation = Nginxtra::ConfigConverter::Indentation.new
     end
 
     def convert(options)
@@ -16,33 +17,22 @@ module Nginxtra
     private
     def header
       @output.puts "nginxtra.config do"
+      @indentation + 1
     end
 
     def config_file(input)
-      tokens = []
+      line = Nginxtra::ConfigConverter::Line.new @indentation, @output
 
       each_token(input) do |token|
-        if token.end?
-          process_line tokens
-          tokens = []
-        else
-          tokens << token
+        line << token
+
+        if line.terminated?
+          line.puts
+          line = Nginxtra::ConfigConverter::Line.new @indentation, @output
         end
       end
-    end
 
-    def process_line(tokens)
-      first = tokens.first
-      rest = tokens.drop 1
-      @output.print "  "
-      @output.print first.value
-
-      if rest.empty?
-        @output.puts ""
-      else
-        @output.print " "
-        @output.puts rest.map(&:to_s).join " "
-      end
+      raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file!") unless line.empty?
     end
 
     def each_token(input)
@@ -59,6 +49,7 @@ module Nginxtra
       end
 
       yield token.instance while token.ready?
+      raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file in mid token!") unless token.value.empty?
     end
 
     def chomp_comment(input)
@@ -68,7 +59,9 @@ module Nginxtra
     end
 
     def footer
+      @indentation - 1
       @output.puts "end"
+      raise Nginxtra::Error::ConvertFailed.new("Missing end blocks!") unless @indentation.done?
     end
 
     def converted!
@@ -89,8 +82,20 @@ module Nginxtra
         @ready = false
       end
 
+      def terminal_character?
+        TERMINAL_CHARACTERS.include? @value
+      end
+
       def end?
         @value == ";"
+      end
+
+      def block_start?
+        @value == "{"
+      end
+
+      def block_end?
+        @value == "}"
       end
 
       def instance
@@ -107,7 +112,7 @@ module Nginxtra
       end
 
       def ready?
-        @instance || @ready || ready_string?
+        @instance || @ready || terminal_character?
       end
 
       def to_s
@@ -119,10 +124,6 @@ module Nginxtra
       end
 
       private
-      def ready_string?
-        TERMINAL_CHARACTERS.include? @value
-      end
-
       def space!
         return if @value.empty?
         @ready = true
@@ -147,6 +148,113 @@ module Nginxtra
 
         @next = nil
         @ready = false
+      end
+    end
+
+    class Line
+      def initialize(indentation, output)
+        @indentation = indentation
+        @output = output
+        @tokens = []
+      end
+
+      def <<(token)
+        @tokens << token
+      end
+
+      def empty?
+        @tokens.empty?
+      end
+
+      def terminated?
+        @tokens.last.terminal_character?
+      end
+
+      def puts
+        if @tokens.last.end?
+          puts_line
+        elsif @tokens.last.block_start?
+          puts_block_start
+        elsif @tokens.last.block_end?
+          puts_block_end
+        else
+          raise Nginxtra::Error::ConvertFailed.new "Can't puts invalid line!"
+        end
+      end
+
+      private
+      def puts_line
+        print_indentation
+        print_first
+        print_args
+        print_newline
+      end
+
+      def puts_block_start
+        print_indentation
+        print_first
+        print_args
+        print_newline(" do")
+        indent
+      end
+
+      def puts_block_end
+        unindent
+        print_indentation
+        print_newline("end")
+      end
+
+      def print_indentation
+        @output.print @indentation.to_s
+      end
+
+      def print_first
+        @output.print @tokens.first.value
+      end
+
+      def print_args
+        args = @tokens[1..-2]
+        return if args.empty?
+        @output.print " "
+        @output.print args.map(&:to_s).join(" ")
+      end
+
+      def print_newline(value = "")
+        @output.puts value
+      end
+
+      def indent
+        @indentation + 1
+      end
+
+      def unindent
+        @indentation - 1
+      end
+    end
+
+    class Indentation
+      attr_reader :value
+
+      def initialize
+        @value = 0
+      end
+
+      def done?
+        @value == 0
+      end
+
+      def -(amount)
+        self + (-amount)
+      end
+
+      def +(amount)
+        @value += amount
+        raise Nginxtra::Error::ConvertFailed.new("Missing block end!") if @value < 0
+        @value
+      end
+
+      def to_s
+        "  " * @value
       end
     end
   end
