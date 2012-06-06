@@ -40,7 +40,7 @@ module Nginxtra
     end
 
     def sudo(force = false)
-      "sudo " if (force || @config.require_root?) && Process.uid != 0
+      "sudo " if (force || (@config && @config.require_root?)) && Process.uid != 0
     end
   end
 end

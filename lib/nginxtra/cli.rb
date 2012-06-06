@@ -9,6 +9,24 @@ module Nginxtra
     class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
 
+    desc "convert", "Convert an nginx.conf file to an nginxtra.conf.rb"
+    long_desc "
+      Parse nginx.conf and convert it to an equivalent nginxtra.conf.rb file.  Expects
+      nginx.conf to be in the current folder, but a different file can be specified
+      with the --nginx-conf option.  Parses the compile time options using the nginx
+      binary parsed from /etc/init.d/nginx, which can be overridden with the
+      --nginx-bin option.  This task will fail if the binary cannot be determined,
+      unless the --ignore-nginx-bin option is used, which will cause the compile time
+      options to be ignored (and the defaults will be used in the resulting
+      nginxtra.conf.rb).  The result will be output to nginxtra.conf.rb in the current
+      directory, unless an override value is specified with the --config option."
+    method_option "nginx-bin", :type => :string, :banner => "Point to the compiled nginx to retrieve compile options", :aliases => "-n"
+    method_option "nginx-conf", :type => :string, :banner => "Point to the nginx.conf file to retrieve the existing configuration", :aliases => "-", :default => "nginx.conf"
+    method_option "ignore-nginx-bin", :type => :boolean, :banner => "Ignore the nginx binary, and assume default compile time options", :aliases => "-N"
+    def convert
+      Nginxtra::Actions::Convert.new(self, nil).convert
+    end
+
     desc "compile", "Compiles nginx based on nginxtra.conf.rb"
     long_desc "
       Compile nginx with the compilation options specified in nginxtra.conf.rb.  If it
