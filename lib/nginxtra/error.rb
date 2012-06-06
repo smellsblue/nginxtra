@@ -9,5 +9,8 @@ module Nginxtra
 
     # Raised when a run command fails
     class RunFailed < StandardError; end
+
+    # Raised if config conversion fails
+    class ConvertFailed < StandardError; end
   end
 end
