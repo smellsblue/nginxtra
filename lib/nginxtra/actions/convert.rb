@@ -4,6 +4,7 @@ module Nginxtra
       include Nginxtra::Action
 
       def convert
+        @thor.say "Coming soon...", :yellow
       end
     end
   end

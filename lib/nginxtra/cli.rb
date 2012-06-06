@@ -23,6 +23,8 @@ module Nginxtra
     method_option "nginx-bin", :type => :string, :banner => "Point to the compiled nginx to retrieve compile options", :aliases => "-n"
     method_option "nginx-conf", :type => :string, :banner => "Point to the nginx.conf file to retrieve the existing configuration", :aliases => "-", :default => "nginx.conf"
     method_option "ignore-nginx-bin", :type => :boolean, :banner => "Ignore the nginx binary, and assume default compile time options", :aliases => "-N"
+    method_option "output", :type => :boolean, :banner => "Output to standard out instead of to a file", :aliases => "-o"
+    method_option "input", :type => :boolean, :banner => "Read nginx.conf from standard in instead of a file", :aliases => "-i"
     def convert
       Nginxtra::Actions::Convert.new(self, nil).convert
     end
