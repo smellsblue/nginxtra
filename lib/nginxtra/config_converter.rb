@@ -279,7 +279,7 @@ module Nginxtra
         args = @tokens[1..-2]
         return if args.empty?
         @output.print " "
-        @output.print args.map(&:to_s).join(" ")
+        @output.print args.map(&:to_s).join(", ")
       end
 
       def print_newline(value = "")

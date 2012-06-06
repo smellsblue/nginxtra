@@ -30,6 +30,17 @@ end
 }
   end
 
+  it "uses commas when there are more than 1 argument" do
+    converter.convert :config => StringIO.new("this is an example;
+")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    this "is", "an", "example"
+  end
+end
+}
+  end
+
   it "ignores comments in a line" do
     converter.convert :config => StringIO.new("# A header comment
 user    my_user; # A line comment
@@ -86,6 +97,30 @@ end
     output.string.should == %{nginxtra.config do
   file "nginx.conf" do
     events do
+    end
+  end
+end
+}
+  end
+
+  it "handles simple blocks with args" do
+    converter.convert :config => StringIO.new("events args {
+}")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    events "args" do
+    end
+  end
+end
+}
+  end
+
+  it "handles simple blocks with several args" do
+    converter.convert :config => StringIO.new("events with multiple args {
+}")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    events "with", "multiple", "args" do
     end
   end
 end
