@@ -124,4 +124,29 @@ end
 end
 }
   end
+
+  it "detects invalidly nested blocks" do
+    lambda { converter.convert :config => StringIO.new("events {
+  worker_connections 10;") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
+
+  it "detects bad line endings" do
+    lambda { converter.convert :config => StringIO.new("worker_connections 10") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
+
+  it "detects bad line endings within block" do
+    lambda { converter.convert :config => StringIO.new("event { worker_connections 10 }") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
+
+  it "detects bad line endings with 1 label within block" do
+    lambda { converter.convert :config => StringIO.new("event { worker_connections }") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
+
+  it "fails with blocks with no label" do
+    lambda { converter.convert :config => StringIO.new("{ worker_connections 10; }") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
+
+  it "fails with empty lines" do
+    lambda { converter.convert :config => StringIO.new(";") }.should raise_error(Nginxtra::Error::ConvertFailed)
+  end
 end

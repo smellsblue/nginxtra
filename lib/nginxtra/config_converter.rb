@@ -184,6 +184,7 @@ module Nginxtra
 
       private
       def puts_line
+        raise Nginxtra::Error::ConvertFailed.new("line must have a first label!") unless @tokens.length > 1
         print_indentation
         print_first
         print_args
@@ -191,6 +192,7 @@ module Nginxtra
       end
 
       def puts_block_start
+        raise Nginxtra::Error::ConvertFailed.new("Block start must have a first label!") unless @tokens.length > 1
         print_indentation
         print_first
         print_args
@@ -199,6 +201,7 @@ module Nginxtra
       end
 
       def puts_block_end
+        raise Nginxtra::Error::ConvertFailed.new("Block end can't have labels!") unless @tokens.length == 1
         unindent
         print_indentation
         print_newline("end")
