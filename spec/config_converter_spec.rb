@@ -169,4 +169,62 @@ end
   it "fails with empty lines" do
     lambda { converter.convert :config => StringIO.new(";") }.should raise_error(Nginxtra::Error::ConvertFailed)
   end
+
+  it "will deal with no compile arguments" do
+    converter.convert :binary_status => "nginx version: nginx/1.2.3
+built by gcc 1.2.3
+configure arguments: 
+"
+    output.string.should == %{nginxtra.config do
+end
+}
+  end
+
+  it "will deal with one argument" do
+    converter.convert :binary_status => "nginx version: nginx/1.2.3
+built by gcc 1.2.3
+configure arguments: --test
+"
+    output.string.should == %{nginxtra.config do
+  compile_option "--test"
+end
+}
+  end
+
+  it "will deal with several arguments" do
+    converter.convert :binary_status => "nginx version: nginx/1.2.3
+built by gcc 1.2.3
+configure arguments: --test --other --another-arg
+"
+    output.string.should == %{nginxtra.config do
+  compile_option "--test"
+  compile_option "--other"
+  compile_option "--another-arg"
+end
+}
+  end
+
+  it "ignores the invalid options" do
+    converter.convert :binary_status => "nginx version: nginx/1.2.3
+built by gcc 1.2.3
+configure arguments: --prefix=./whatever --sbin-path=./sbin/value --conf-path=my/conf/path --pid-path=my/pid/path --test
+"
+    output.string.should == %{nginxtra.config do
+  compile_option "--test"
+end
+}
+  end
+
+  it "detects passenger options" do
+    converter.convert :binary_status => "nginx version: nginx/1.2.3
+built by gcc 1.2.3
+configure arguments: --with-http_ssl_module --testing --with-http_gzip_static_module --another-test --add-module=/my/path/to/passenger-1.2.3/ext/nginx --with-cc-opt=-Wno-error
+"
+    output.string.should == %{nginxtra.config do
+  require_passenger!
+  compile_option "--testing"
+  compile_option "--another-test"
+end
+}
+  end
 end

@@ -9,6 +9,7 @@ module Nginxtra
     def convert(options)
       raise Nginxtra::Error::ConvertFailed.new("The convert method can only be called once!") if converted?
       header
+      compile_options options[:binary_status]
       config_file options[:config]
       footer
       converted!
@@ -20,8 +21,43 @@ module Nginxtra
       @indentation + 1
     end
 
+    def compile_options(status)
+      return unless status
+      options = status[/^configure arguments:\s*(.*)$/, 1].strip
+      return if options.empty?
+      options = options.split /\s+/
+      process_passenger_compile_options! options
+
+      options.each do |option|
+        next if invalid_compile_option? option
+        @output.print @indentation
+        @output.puts %{compile_option "#{option}"}
+      end
+    end
+
+    def process_passenger_compile_options!(options)
+      return if options.select { |x| x =~ /^--add-module.*\/passenger.*/ }.empty?
+      @output.print @indentation
+      @output.puts "require_passenger!"
+
+      options.delete_if do |x|
+        next true if x =~ /^--add-module.*\/passenger.*/
+        ["--with-http_ssl_module", "--with-http_gzip_static_module", "--with-cc-opt=-Wno-error"].include? x
+      end
+    end
+
+    def invalid_compile_option?(option)
+      return true if option =~ /--prefix=/
+      return true if option =~ /--sbin-path=/
+      return true if option =~ /--conf-path=/
+      return true if option =~ /--pid-path=/
+      false
+    end
+
     def config_file(input)
-      @output.puts %{#{@indentation}file "nginx.conf" do}
+      return unless input
+      @output.print @indentation
+      @output.puts %{file "nginx.conf" do}
       @indentation + 1
       line = Nginxtra::ConfigConverter::Line.new @indentation, @output
 
@@ -36,7 +72,8 @@ module Nginxtra
 
       raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file!") unless line.empty?
       @indentation - 1
-      @output.puts %{#{@indentation}end}
+      @output.print @indentation
+      @output.puts "end"
     end
 
     def each_token(input)
