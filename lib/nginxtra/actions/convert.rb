@@ -46,7 +46,8 @@ module Nginxtra
         if @thor.options["nginx-bin"]
           @thor.run "#{@thor.options["nginx-bin"]} -V 2>&1", :capture => true
         else
-          raise "TODO: Figure out the nginx binary location and call -V"
+          # TODO: Figure out the nginx binary location and call -V
+          raise "The auto detection of nginx binary is not yet implemented.  Please use the --nginx-bin option for now."
         end
       end
 
