@@ -127,6 +127,7 @@ end
 end
 }
   end
+
   it "will deal with single line of nested blocks and values" do
     converter.convert :config => StringIO.new("events{value 1;nested_events{deeper_nested_events{worker_connections 10;inner_value 2;}}}")
     output.string.should == %{nginxtra.config do
@@ -139,6 +140,24 @@ end
           inner_value 2
         end
       end
+    end
+  end
+end
+}
+  end
+
+  it "parses passenger lines" do
+    converter.convert :config => StringIO.new("http {
+  passenger_root /path/to/passenger-1.2.3;
+  passenger_ruby /the/path/to/ruby;
+  passenger_enabled on;
+}")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    http do
+      passenger_root!
+      passenger_ruby!
+      passenger_on!
     end
   end
 end

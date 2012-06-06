@@ -224,12 +224,31 @@ module Nginxtra
       end
 
       private
+      def passenger?
+        ["passenger_root", "passenger_ruby", "passenger_enabled"].include? @tokens.first.value
+      end
+
       def puts_line
         raise Nginxtra::Error::ConvertFailed.new("line must have a first label!") unless @tokens.length > 1
+        return puts_passenger if passenger?
         print_indentation
         print_first
         print_args
         print_newline
+      end
+
+      def puts_passenger
+        print_indentation
+
+        if @tokens.first.value == "passenger_root"
+          print_newline "passenger_root!"
+        elsif @tokens.first.value == "passenger_ruby"
+          print_newline "passenger_ruby!"
+        elsif @tokens.first.value == "passenger_enabled"
+          print_newline "passenger_on!"
+        else
+          raise Nginxtra::Error::ConvertFailed.new("Whoops!")
+        end
       end
 
       def puts_block_start
