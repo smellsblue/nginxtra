@@ -23,7 +23,7 @@ module Nginxtra
 
     def compile_options(status)
       return unless status
-      options = status[/^configure arguments:\s*(.*)$/, 1].strip
+      options = (status[/^configure arguments:\s*(.*)$/, 1] || "").strip
       return if options.empty?
       options = options.split /\s+/
       process_passenger_compile_options! options
