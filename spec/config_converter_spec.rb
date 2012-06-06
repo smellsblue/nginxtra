@@ -89,4 +89,39 @@ end
 end
 }
   end
+
+  it "can manage nested blocks with content" do
+    converter.convert :config => StringIO.new("events {
+  nested_events {
+    deeper_nested_events {
+      worker_connections 10;
+    }
+  }
+}")
+    output.string.should == %{nginxtra.config do
+  events do
+    nested_events do
+      deeper_nested_events do
+        worker_connections 10
+      end
+    end
+  end
+end
+}
+  end
+  it "will deal with single line of nested blocks and values" do
+    converter.convert :config => StringIO.new("events{value 1;nested_events{deeper_nested_events{worker_connections 10;inner_value 2;}}}")
+    output.string.should == %{nginxtra.config do
+  events do
+    value 1
+    nested_events do
+      deeper_nested_events do
+        worker_connections 10
+        inner_value 2
+      end
+    end
+  end
+end
+}
+  end
 end
