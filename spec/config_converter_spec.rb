@@ -13,6 +13,8 @@ describe Nginxtra::ConfigConverter do
   it "converts empty config to a simple config file" do
     converter.convert :config => StringIO.new("")
     output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+  end
 end
 }
   end
@@ -21,7 +23,9 @@ end
     converter.convert :config => StringIO.new("user    my_user;
 ")
     output.string.should == %{nginxtra.config do
-  user "my_user"
+  file "nginx.conf" do
+    user "my_user"
+  end
 end
 }
   end
@@ -31,7 +35,9 @@ end
 user    my_user; # A line comment
 ")
     output.string.should == %{nginxtra.config do
-  user "my_user"
+  file "nginx.conf" do
+    user "my_user"
+  end
 end
 }
   end
@@ -40,7 +46,9 @@ end
     converter.convert :config => StringIO.new("user    my_user;
 # A line comment")
     output.string.should == %{nginxtra.config do
-  user "my_user"
+  file "nginx.conf" do
+    user "my_user"
+  end
 end
 }
   end
@@ -52,8 +60,10 @@ worker_processes     1;
 
 ")
     output.string.should == %{nginxtra.config do
-  user "my_user"
-  worker_processes 1
+  file "nginx.conf" do
+    user "my_user"
+    worker_processes 1
+  end
 end
 }
   end
@@ -61,9 +71,11 @@ end
   it "handles multiple lines smooshed together" do
     converter.convert :config => StringIO.new("user my_user;worker_processes 1;worker_processes 2;")
     output.string.should == %{nginxtra.config do
-  user "my_user"
-  worker_processes 1
-  worker_processes 2
+  file "nginx.conf" do
+    user "my_user"
+    worker_processes 1
+    worker_processes 2
+  end
 end
 }
   end
@@ -72,7 +84,9 @@ end
     converter.convert :config => StringIO.new("events {
 }")
     output.string.should == %{nginxtra.config do
-  events do
+  file "nginx.conf" do
+    events do
+    end
   end
 end
 }
@@ -83,8 +97,10 @@ end
   worker_connections 10;
 }")
     output.string.should == %{nginxtra.config do
-  events do
-    worker_connections 10
+  file "nginx.conf" do
+    events do
+      worker_connections 10
+    end
   end
 end
 }
@@ -99,10 +115,12 @@ end
   }
 }")
     output.string.should == %{nginxtra.config do
-  events do
-    nested_events do
-      deeper_nested_events do
-        worker_connections 10
+  file "nginx.conf" do
+    events do
+      nested_events do
+        deeper_nested_events do
+          worker_connections 10
+        end
       end
     end
   end
@@ -112,12 +130,14 @@ end
   it "will deal with single line of nested blocks and values" do
     converter.convert :config => StringIO.new("events{value 1;nested_events{deeper_nested_events{worker_connections 10;inner_value 2;}}}")
     output.string.should == %{nginxtra.config do
-  events do
-    value 1
-    nested_events do
-      deeper_nested_events do
-        worker_connections 10
-        inner_value 2
+  file "nginx.conf" do
+    events do
+      value 1
+      nested_events do
+        deeper_nested_events do
+          worker_connections 10
+          inner_value 2
+        end
       end
     end
   end

@@ -21,6 +21,8 @@ module Nginxtra
     end
 
     def config_file(input)
+      @output.puts %{#{@indentation}file "nginx.conf" do}
+      @indentation + 1
       line = Nginxtra::ConfigConverter::Line.new @indentation, @output
 
       each_token(input) do |token|
@@ -33,6 +35,8 @@ module Nginxtra
       end
 
       raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file!") unless line.empty?
+      @indentation - 1
+      @output.puts %{#{@indentation}end}
     end
 
     def each_token(input)
