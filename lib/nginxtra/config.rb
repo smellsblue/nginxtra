@@ -363,6 +363,8 @@ module Nginxtra
         additional_blocks = @additional_blocks
 
         config.instance_eval do
+          require_passenger! if options[:include_passenger]
+
           file "nginx.conf" do
             worker_processes options[:worker_processes]
 
