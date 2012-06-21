@@ -15,7 +15,9 @@ describe Nginxtra::Status do
 
     it "saves out to a file when options are stored" do
       YAML.should_receive(:dump).with({ :last_compile_options => "--some-option" }).and_return("The YAML dumped content")
-      File.should_receive(:write).with(status_file, "The YAML dumped content")
+      fake_file = Object.new
+      fake_file.should_receive(:<<).with("The YAML dumped content")
+      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:last_compile_options] = "--some-option"
       Nginxtra::Status[:last_compile_options].should == "--some-option"
     end
@@ -38,7 +40,9 @@ describe Nginxtra::Status do
 
     it "saves out to a file when new options are stored" do
       YAML.should_receive(:dump).with({ :last_compile_options => "--original-option", :other_option => "something", :new_option => "new value" }).and_return("The YAML dumped content")
-      File.should_receive(:write).with(status_file, "The YAML dumped content")
+      fake_file = Object.new
+      fake_file.should_receive(:<<).with("The YAML dumped content")
+      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:new_option] = "new value"
       Nginxtra::Status[:new_option].should == "new value"
       Nginxtra::Status[:last_compile_options].should == "--original-option"
@@ -47,7 +51,9 @@ describe Nginxtra::Status do
 
     it "saves out to a file when old options are updated" do
       YAML.should_receive(:dump).with({ :last_compile_options => "--some-option", :other_option => "something" }).and_return("The YAML dumped content")
-      File.should_receive(:write).with(status_file, "The YAML dumped content")
+      fake_file = Object.new
+      fake_file.should_receive(:<<).with("The YAML dumped content")
+      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:last_compile_options] = "--some-option"
       Nginxtra::Status[:last_compile_options].should == "--some-option"
       Nginxtra::Status[:other_option].should == "something"
