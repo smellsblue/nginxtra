@@ -37,7 +37,7 @@ module Nginxtra
         return if @@status
 
         if File.exists? path
-          @@status = YAML.load File.read path
+          @@status = YAML.load File.read(path)
         else
           @@status = {}
         end
@@ -50,7 +50,9 @@ module Nginxtra
 
       # Save the current state to disk.
       def save!
-        File.write path, YAML.dump(@@status)
+        File.open path, "w" do |file|
+          file << YAML.dump(@@status)
+        end
       end
     end
   end
