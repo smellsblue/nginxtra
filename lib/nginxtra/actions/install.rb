@@ -50,7 +50,8 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
           @thor.chmod filename, 0755
         end
 
-        run! %{#{sudo true}rm /etc/init.d/nginxtra && #{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra}
+        run! %{#{sudo true}rm /etc/init.d/nginxtra} if File.exists? "/etc/init.d/nginxtra"
+        run! %{#{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra}
         run! %{#{sudo true}update-rc.d nginxtra defaults}
       end
 
