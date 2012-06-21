@@ -287,4 +287,77 @@ try_files $uri $uri.html;
       Nginxtra::Config.require!("/a/fake/path").should == config
     end
   end
+
+  describe "auto config capabilities" do
+    before do
+      Nginxtra::Config.stub(:passenger_spec) do
+        o = Object.new
+        o.stub(:gem_dir).and_return("PASSENGER_ROOT")
+        o
+      end
+      Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
+    end
+
+    it "allows very simple rails configuration" do
+      config = nginxtra.simple_config do
+        rails
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+events {
+worker_connections 1024;
+}
+http {
+passenger_root PASSENGER_ROOT;
+passenger_ruby PASSENGER_RUBY;
+include mime.types;
+default_type application/octet-stream;
+sendfile on;
+keepalive_timout 65;
+gzip on;
+server {
+listen 80;
+server_name localhost;
+root #{File.absolute_path "public"};
+gzip_static on;
+passenger_enabled on;
+}
+}"
+    end
+
+    it "allows multiple rails servers to be specified" do
+      config = nginxtra.simple_config do
+        rails
+        rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+events {
+worker_connections 1024;
+}
+http {
+passenger_root PASSENGER_ROOT;
+passenger_ruby PASSENGER_RUBY;
+include mime.types;
+default_type application/octet-stream;
+sendfile on;
+keepalive_timout 65;
+gzip on;
+server {
+listen 80;
+server_name localhost;
+root #{File.absolute_path "public"};
+gzip_static on;
+passenger_enabled on;
+}
+server {
+listen 8080;
+server_name otherserver.com;
+root /path/to/rails/public;
+gzip_static on;
+passenger_enabled on;
+}
+}"
+    end
+  end
 end

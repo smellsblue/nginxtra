@@ -25,6 +25,15 @@ module Nginxtra
       self
     end
 
+    # Support simple configuration in a special block.  This will
+    # allow wholesale configuration like for rails.  It supports the
+    # :worker_processes and :worker_connections options, which will
+    # affect the resulting configuration.
+    def simple_config(options = {}, &block)
+      SimpleConfig.new(options, &block).process!(self)
+      self
+    end
+
     # Notify nginxtra that root access is needed to run the daemon
     # commands.  Sudo will automatically be used if the current user
     # isn't root.
@@ -333,6 +342,71 @@ module Nginxtra
       # Output that passenger is enabled in this block.
       def passenger_on!
         config_line %{passenger_enabled on}
+      end
+    end
+
+    # A class for encapsulating simple configuration.
+    class SimpleConfig
+      KNOWN_RAILS_SERVERS = [:passenger]
+      DEFAULT_OPTIONS = { :worker_processes => 1, :worker_connections => 1024 }
+      DEFAULT_RAILS_OPTIONS = { :port => 80, :server_name => "localhost", :root => ".", :server => :passenger }
+
+      def initialize(options, &block)
+        @options = DEFAULT_OPTIONS.merge options
+        @additional_blocks = []
+        instance_eval &block
+      end
+
+      # Process the simple config with the given Config object.
+      def process!(config)
+        options = @options
+        additional_blocks = @additional_blocks
+
+        config.instance_eval do
+          file "nginx.conf" do
+            worker_processes options[:worker_processes]
+
+            events do
+              worker_connections options[:worker_connections]
+            end
+
+            http do
+              passenger_root! if options[:include_passenger]
+              passenger_ruby! if options[:include_passenger]
+              include "mime.types"
+              default_type "application/octet-stream"
+              sendfile "on"
+              keepalive_timout 65
+              gzip "on"
+              additional_blocks.each do |block|
+                instance_eval &block
+              end
+            end
+          end
+        end
+      end
+
+      # Add a rails configuration.  Options include :server (to
+      # specify what will serve rails to nginx), :port to mark what
+      # port the server will run on (defaults to 80), server_name for
+      # specifying the virtual host name (defaults to localhost), and
+      # :root to note the root rails directory (defaults to the
+      # current directory).
+      def rails(options = {})
+        options = DEFAULT_RAILS_OPTIONS.merge options
+        raise Nginxtra::Error::InvalidConfig.new("Unknown Rails server '#{options[:server]}'") unless KNOWN_RAILS_SERVERS.include? options[:server].to_sym
+        passenger = options[:server].to_sym == :passenger
+        @options[:include_passenger] = true if passenger
+
+        @additional_blocks << Proc.new do
+          server do
+            listen options[:port]
+            server_name options[:server_name]
+            root File.join(File.absolute_path(options[:root]), "public")
+            gzip_static "on"
+            passenger_enabled "on" if passenger
+          end
+        end
       end
     end
   end
