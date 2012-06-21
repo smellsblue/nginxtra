@@ -44,11 +44,19 @@ module Nginxtra
         return if @thor.options["ignore-nginx-bin"]
 
         if @thor.options["nginx-bin"]
-          @thor.run "#{@thor.options["nginx-bin"]} -V 2>&1", :capture => true
+          binary = @thor.options["nginx-bin"]
         else
-          # TODO: Figure out the nginx binary location and call -V
-          raise "The auto detection of nginx binary is not yet implemented.  Please use the --nginx-bin option for now."
+          binary = etc_nginx_binary
         end
+
+        @thor.run "#{binary} -V 2>&1", :capture => true
+      end
+
+      def etc_nginx_binary
+        raise Nginxtra::Error::ConvertFailed.new("Cannot find nginx binary.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless File.exists? "/etc/init.d/nginx"
+        binary = File.read("/etc/init.d/nginx")[/\s*DAEMON\s*=\s*(.*?)\s*$/, 1]
+        raise Nginxtra::Error::ConvertFailed.new("Cannot determine nginx binary from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless binary
+        binary
       end
 
       def open_file(path)
