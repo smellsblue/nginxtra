@@ -60,7 +60,7 @@ module Nginxtra
       end
 
       def open_file(path)
-        raise "Missing config file #{path}" unless File.exists? path
+        raise Nginxtra::Error::ConvertFailed.new("Missing config file #{path}") unless File.exists? path
 
         File.open(path, "r").tap do |stream|
           @streams_to_close << stream

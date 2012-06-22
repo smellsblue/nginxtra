@@ -6,6 +6,7 @@ module Nginxtra
 
     class_option "force", :type => :boolean, :banner => "Force a task to happen, regardless of what nginxtra thinks", :aliases => "-f"
     class_option "non-interactive", :type => :boolean, :banner => "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", :aliases => "-I"
+    class_option "ignore-nginx-check", :type => :boolean, :banner => "Ignore the nginx check if installing"
     class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
 
