@@ -35,12 +35,7 @@ module Nginxtra
           return
         end
 
-        @thor.say @thor.set_color("It appears nginx is already installed!", :red, true)
-        @thor.say @thor.set_color("Since /etc/init.d/nginx exists, you might have an existing nginx installation
-that will conflict with nginxtra.  If you want to install nginxtra alongside
-nginx (at your own risk), please include the --ignore-nginx-check option to
-bypass this check.", :red, false)
-        raise Nginxtra::Error::NginxDetected.new("Uninstall nginx before installing nginxtra")
+        raise Nginxtra::Error::NginxDetected.new("Uninstall nginx before installing nginxtra", :header => "It appears nginx is already installed!", :message => "Since /etc/init.d/nginx exists, you might have an existing nginx installation that will conflict with nginxtra.  If you want to install nginxtra alongside nginx (at your own risk), please include the --ignore-nginx-check option to bypass this check.")
       end
 
       # Create a script in the base directory which be symlinked to

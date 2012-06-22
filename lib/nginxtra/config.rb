@@ -77,10 +77,10 @@ module Nginxtra
     #   end
     def compile_option(opt)
       opt = "--#{opt}" unless opt =~ /^--/
-      raise Nginxtra::Error::InvalidConfig.new("The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
-      raise Nginxtra::Error::InvalidConfig.new("The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/
-      raise Nginxtra::Error::InvalidConfig.new("The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Config::FILENAME}.") if opt =~ /--conf-path=/
-      raise Nginxtra::Error::InvalidConfig.new("The --pid-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where the pid file is created.") if opt =~ /--pid-path=/
+      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --prefix", :header => "Invalid compilation option --prefix", :message => "The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
+      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --sbin-path", :header => "Invalid compilation option --sbin-path", :message => "The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/
+      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --conf-path", :header => "Invalid compilation option --conf-path", :message => "The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Config::FILENAME}.") if opt =~ /--conf-path=/
+      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --pid-path", :header => "Invalid compilation option --pid-path", :message => "The --pid-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where the pid file is created.") if opt =~ /--pid-path=/
       @compile_options << opt
     end
 
@@ -236,7 +236,7 @@ module Nginxtra
       # be found.
       def passenger_spec
         @passenger_spec ||= Gem::Specification.find_by_name("passenger").tap do |spec|
-          raise InvalidConfig.new("You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
+          raise InvalidConfig.new("Missing passenger gem", :header => "Missing passenger gem!", :message => "You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
         end
       end
 

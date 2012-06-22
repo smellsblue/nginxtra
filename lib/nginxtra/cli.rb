@@ -5,6 +5,7 @@ module Nginxtra
     include Thor::Actions
 
     class_option "force", :type => :boolean, :banner => "Force a task to happen, regardless of what nginxtra thinks", :aliases => "-f"
+    class_option "trace", :type => :boolean, :banner => "Output stack traces on error"
     class_option "non-interactive", :type => :boolean, :banner => "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", :aliases => "-I"
     class_option "ignore-nginx-check", :type => :boolean, :banner => "Ignore the nginx check if installing"
     class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
@@ -27,7 +28,9 @@ module Nginxtra
     method_option "output", :type => :boolean, :banner => "Output to standard out instead of to a file", :aliases => "-o"
     method_option "input", :type => :boolean, :banner => "Read nginx.conf from standard in instead of a file", :aliases => "-i"
     def convert
-      Nginxtra::Actions::Convert.new(self, nil).convert
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Convert.new(self, nil).convert
+      end
     end
 
     desc "compile", "Compiles nginx based on nginxtra.conf.rb"
@@ -38,7 +41,9 @@ module Nginxtra
       be executed directly.  However, you can force recompilation by running this task
       with the --force option."
     def compile
-      Nginxtra::Actions::Compile.new(self, prepare_config!).compile
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Compile.new(self, prepare_config!).compile
+      end
     end
 
     desc "install", "Installs nginxtra"
@@ -48,7 +53,9 @@ module Nginxtra
       already installed with this version of nginxtra.  If it was already installed,
       installation will be skipped unless the --force option is given."
     def install
-      Nginxtra::Actions::Install.new(self, prepare_config!).install
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Install.new(self, prepare_config!).install
+      end
     end
 
     desc "start", "Start nginx with configuration defined in nginxtra.conf.rb"
@@ -62,7 +69,9 @@ module Nginxtra
       compilation and installation will NOT be forced with --force option.  The
       compile or install task should be invoked if those need to be forced."
     def start
-      Nginxtra::Actions::Start.new(self, prepare_config!).start
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Start.new(self, prepare_config!).start
+      end
     end
 
     desc "stop", "Stop nginx"
@@ -71,23 +80,31 @@ module Nginxtra
       determined to be running, this command will do nothing, unless --force is passed
       (which will cause it to run the stop command regardless of the pidfile)."
     def stop
-      Nginxtra::Actions::Stop.new(self, prepare_config!).stop
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Stop.new(self, prepare_config!).stop
+      end
     end
 
     desc "restart", "Restart nginx"
     def restart
-      Nginxtra::Actions::Restart.new(self, prepare_config!).restart
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Restart.new(self, prepare_config!).restart
+      end
     end
     map "force-reload" => "restart"
 
     desc "reload", "Reload nginx"
     def reload
-      Nginxtra::Actions::Reload.new(self, prepare_config!).reload
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Reload.new(self, prepare_config!).reload
+      end
     end
 
     desc "status", "Check if nginx is running"
     def status
-      Nginxtra::Actions::Status.new(self, prepare_config!).status
+      Nginxtra::Error.protect self do
+        Nginxtra::Actions::Status.new(self, prepare_config!).status
+      end
     end
 
     private

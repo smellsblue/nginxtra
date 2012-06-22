@@ -229,7 +229,7 @@ module Nginxtra
       end
 
       def puts_line
-        raise Nginxtra::Error::ConvertFailed.new("line must have a first label!") unless @tokens.length > 1
+        raise Nginxtra::Error::ConvertFailed.new("Line must have a first label!") unless @tokens.length > 1
         return puts_passenger if passenger?
         print_indentation
         print_first

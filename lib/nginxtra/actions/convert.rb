@@ -53,9 +53,9 @@ module Nginxtra
       end
 
       def etc_nginx_binary
-        raise Nginxtra::Error::ConvertFailed.new("Cannot find nginx binary.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless File.exists? "/etc/init.d/nginx"
+        raise Nginxtra::Error::ConvertFailed.new("Cannot find nginx binary", :header => "Cannot find nginx binary!", :message => "Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless File.exists? "/etc/init.d/nginx"
         binary = File.read("/etc/init.d/nginx")[/\s*DAEMON\s*=\s*(.*?)\s*$/, 1]
-        raise Nginxtra::Error::ConvertFailed.new("Cannot determine nginx binary from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless binary
+        raise Nginxtra::Error::ConvertFailed.new("Cannot determine nginx binary", :header => "Cannot find nginx binary!", :message => "The binary location of nginx cannot be determined from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless binary
         binary
       end
 
