@@ -171,13 +171,16 @@ worker_processes 42"
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "user my_user;
 worker_processes 42;
+
 events {
     worker_connections 512;
 }
+
 http {
     location = /robots.txt {
         access_log off;
     }
+
     location / {
         try_files $uri $uri.html;
     }
@@ -304,9 +307,11 @@ http {
       end
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
+
 events {
     worker_connections 1024;
 }
+
 http {
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;
@@ -315,6 +320,7 @@ http {
     sendfile on;
     keepalive_timout 65;
     gzip on;
+
     server {
         listen 80;
         server_name localhost;
@@ -332,9 +338,11 @@ http {
       end
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
+
 events {
     worker_connections 1024;
 }
+
 http {
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;
@@ -343,6 +351,7 @@ http {
     sendfile on;
     keepalive_timout 65;
     gzip on;
+
     server {
         listen 80;
         server_name localhost;
@@ -350,6 +359,7 @@ http {
         gzip_static on;
         passenger_enabled on;
     }
+
     server {
         listen 8080;
         server_name otherserver.com;

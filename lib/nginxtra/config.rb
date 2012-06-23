@@ -273,7 +273,8 @@ module Nginxtra
       #     config_line "worker_processes 42"
       #   end
       def config_line(contents)
-        @file_contents << "#{@indentation}#{contents};"
+        @begin_of_block = false
+        bare_config_line "#{contents};"
       end
 
       # Add a new line to the config, but without a semicolon at the
@@ -284,7 +285,14 @@ module Nginxtra
       #     bare_config_line "a line with no semicolon"
       #   end
       def bare_config_line(contents)
+        @begin_of_block = false
         @file_contents << "#{@indentation}#{contents}"
+      end
+
+      # Add an empty config line to the resulting config file.
+      def empty_config_line
+        @begin_of_block = false
+        @file_contents << ""
       end
 
       # Add a new block to the config.  This will result in outputting
@@ -300,7 +308,9 @@ module Nginxtra
       #     end
       #   end
       def config_block(name)
+        empty_config_line unless @file_contents.empty? || @begin_of_block
         bare_config_line "#{name} {"
+        @begin_of_block = true
         @indentation + 1
         yield if block_given?
         @indentation - 1
