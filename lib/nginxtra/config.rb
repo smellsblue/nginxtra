@@ -254,6 +254,7 @@ module Nginxtra
     # Represents a config file being defined by nginxtra.conf.rb.
     class ConfigFile
       def initialize(&block)
+        @indentation = Nginxtra::Config::Indentation.new :indent_size => 4
         @file_contents = []
         instance_eval &block
       end
@@ -272,7 +273,7 @@ module Nginxtra
       #     config_line "worker_processes 42"
       #   end
       def config_line(contents)
-        @file_contents << "#{contents};"
+        @file_contents << "#{@indentation}#{contents};"
       end
 
       # Add a new line to the config, but without a semicolon at the
@@ -283,7 +284,7 @@ module Nginxtra
       #     bare_config_line "a line with no semicolon"
       #   end
       def bare_config_line(contents)
-        @file_contents << contents
+        @file_contents << "#{@indentation}#{contents}"
       end
 
       # Add a new block to the config.  This will result in outputting
@@ -299,9 +300,11 @@ module Nginxtra
       #     end
       #   end
       def config_block(name)
-        @file_contents << "#{name} {"
+        bare_config_line "#{name} {"
+        @indentation + 1
         yield if block_given?
-        @file_contents << "}"
+        @indentation - 1
+        bare_config_line "}"
       end
 
       # Arbitrary config can be specified as long as the name doesn't
@@ -409,6 +412,37 @@ module Nginxtra
             passenger_enabled "on" if passenger
           end
         end
+      end
+    end
+
+    class Indentation
+      attr_reader :value
+
+      def initialize(options = {})
+        @value = 0
+        @options = options
+      end
+
+      def indent_size
+        @options[:indent_size] || 2
+      end
+
+      def done?
+        @value == 0
+      end
+
+      def -(amount)
+        self + (-amount)
+      end
+
+      def +(amount)
+        @value += amount
+        raise Nginxtra::Error::ConvertFailed.new("Missing block end!") if @value < 0
+        @value
+      end
+
+      def to_s
+        " " * indent_size * @value
       end
     end
   end

@@ -3,7 +3,7 @@ module Nginxtra
     def initialize(output)
       @converted = false
       @output = output
-      @indentation = Nginxtra::ConfigConverter::Indentation.new
+      @indentation = Nginxtra::Config::Indentation.new
     end
 
     def convert(options)
@@ -292,32 +292,6 @@ module Nginxtra
 
       def unindent
         @indentation - 1
-      end
-    end
-
-    class Indentation
-      attr_reader :value
-
-      def initialize
-        @value = 0
-      end
-
-      def done?
-        @value == 0
-      end
-
-      def -(amount)
-        self + (-amount)
-      end
-
-      def +(amount)
-        @value += amount
-        raise Nginxtra::Error::ConvertFailed.new("Missing block end!") if @value < 0
-        @value
-      end
-
-      def to_s
-        "  " * @value
       end
     end
   end

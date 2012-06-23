@@ -130,7 +130,7 @@ worker_processes 42"
 
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "events {
-worker_connections 4242;
+    worker_connections 4242;
 }"
     end
 
@@ -172,15 +172,15 @@ worker_connections 4242;
       config.file_contents("nginx.conf").should == "user my_user;
 worker_processes 42;
 events {
-worker_connections 512;
+    worker_connections 512;
 }
 http {
-location = /robots.txt {
-access_log off;
-}
-location / {
-try_files $uri $uri.html;
-}
+    location = /robots.txt {
+        access_log off;
+    }
+    location / {
+        try_files $uri $uri.html;
+    }
 }"
     end
 
@@ -305,23 +305,23 @@ try_files $uri $uri.html;
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 events {
-worker_connections 1024;
+    worker_connections 1024;
 }
 http {
-passenger_root PASSENGER_ROOT;
-passenger_ruby PASSENGER_RUBY;
-include mime.types;
-default_type application/octet-stream;
-sendfile on;
-keepalive_timout 65;
-gzip on;
-server {
-listen 80;
-server_name localhost;
-root #{File.absolute_path "public"};
-gzip_static on;
-passenger_enabled on;
-}
+    passenger_root PASSENGER_ROOT;
+    passenger_ruby PASSENGER_RUBY;
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timout 65;
+    gzip on;
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "public"};
+        gzip_static on;
+        passenger_enabled on;
+    }
 }"
     end
 
@@ -333,30 +333,30 @@ passenger_enabled on;
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 events {
-worker_connections 1024;
+    worker_connections 1024;
 }
 http {
-passenger_root PASSENGER_ROOT;
-passenger_ruby PASSENGER_RUBY;
-include mime.types;
-default_type application/octet-stream;
-sendfile on;
-keepalive_timout 65;
-gzip on;
-server {
-listen 80;
-server_name localhost;
-root #{File.absolute_path "public"};
-gzip_static on;
-passenger_enabled on;
-}
-server {
-listen 8080;
-server_name otherserver.com;
-root /path/to/rails/public;
-gzip_static on;
-passenger_enabled on;
-}
+    passenger_root PASSENGER_ROOT;
+    passenger_ruby PASSENGER_RUBY;
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timout 65;
+    gzip on;
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "public"};
+        gzip_static on;
+        passenger_enabled on;
+    }
+    server {
+        listen 8080;
+        server_name otherserver.com;
+        root /path/to/rails/public;
+        gzip_static on;
+        passenger_enabled on;
+    }
 }"
     end
   end
