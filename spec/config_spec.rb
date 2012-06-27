@@ -310,6 +310,8 @@ http {
       config = nginxtra.simple_config do
         rails
       end
+
+      config.compile_options.should == %{--with-http_ssl_module --with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 
@@ -342,6 +344,8 @@ http {
         rails
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end
+
+      config.compile_options.should == %{--with-http_ssl_module --with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 
