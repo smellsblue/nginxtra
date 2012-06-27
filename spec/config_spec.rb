@@ -103,7 +103,8 @@ describe Nginxtra::Config do
 
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "user my_user;
-worker_processes 42;"
+worker_processes 42;
+"
     end
 
     it "allows line definitions without semicolon" do
@@ -116,7 +117,8 @@ worker_processes 42;"
 
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "user my_user
-worker_processes 42"
+worker_processes 42
+"
     end
 
     it "allows block definitions" do
@@ -131,7 +133,8 @@ worker_processes 42"
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "events {
     worker_connections 4242;
-}"
+}
+"
     end
 
     it "supports empty block definitions" do
@@ -143,7 +146,8 @@ worker_processes 42"
 
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "events {
-}"
+}
+"
     end
 
     it "allows arbitrary blocks and lines" do
@@ -184,7 +188,8 @@ http {
     location / {
         try_files $uri $uri.html;
     }
-}"
+}
+"
     end
 
     it "allows defining multiple config files" do
@@ -199,8 +204,10 @@ http {
       end
 
       config.files.should =~ ["other.conf", "nginx.conf"]
-      config.file_contents("nginx.conf").should == "nginx_contents;"
-      config.file_contents("other.conf").should == "other_contents;"
+      config.file_contents("nginx.conf").should == "nginx_contents;
+"
+      config.file_contents("other.conf").should == "other_contents;
+"
     end
   end
 
@@ -328,7 +335,8 @@ http {
         gzip_static on;
         passenger_enabled on;
     }
-}"
+}
+"
     end
 
     it "allows multiple rails servers to be specified" do
@@ -367,7 +375,8 @@ http {
         gzip_static on;
         passenger_enabled on;
     }
-}"
+}
+"
     end
   end
 end

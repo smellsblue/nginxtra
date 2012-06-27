@@ -261,7 +261,9 @@ module Nginxtra
 
       # The file contents that were defined for this config file.
       def config_file_contents
-        @file_contents.join "\n"
+        result = @file_contents.join "\n"
+        result += "\n" unless result.empty?
+        result
       end
 
       # Add a new line to the config.  A semicolon is added

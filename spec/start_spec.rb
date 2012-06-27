@@ -24,9 +24,10 @@ describe Nginxtra::Actions::Start do
     config_mock.should_receive(:require_root?).and_return(false)
     thor_mock.should_receive(:run).with("start-stop-daemon --start --quiet --pidfile #{pidfile} --exec #{executable}") { RunMock.success }
     thor_mock.stub(:options).and_return({})
+    Nginxtra::Config.should_receive(:nginx_running?).and_return(false)
     Time.stub(:now).and_return(:fake_time)
     Nginxtra::Status.should_receive(:[]=).with(:last_start_time, :fake_time)
-   Nginxtra::Actions::Start.new(thor_mock, config_mock).start
+    Nginxtra::Actions::Start.new(thor_mock, config_mock).start
   end
 
   it "throws an exception if nginx.conf is not specified" do
@@ -36,6 +37,7 @@ describe Nginxtra::Actions::Start do
     install_mock.should_receive(:optional_install)
     config_mock.should_receive(:files).and_return(["mime_types.conf"])
     thor_mock.stub(:options).and_return({})
+    Nginxtra::Config.should_receive(:nginx_running?).and_return(false)
     lambda { Nginxtra::Actions::Start.new(thor_mock, config_mock).start }.should raise_error(Nginxtra::Error::InvalidConfig)
   end
 end
