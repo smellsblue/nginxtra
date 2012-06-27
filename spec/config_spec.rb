@@ -301,9 +301,7 @@ http {
   describe "auto config capabilities" do
     before do
       Nginxtra::Config.stub(:passenger_spec) do
-        o = Object.new
-        o.stub(:gem_dir).and_return("PASSENGER_ROOT")
-        o
+        Object.new.tap { |o| o.stub(:gem_dir).and_return("PASSENGER_ROOT") }
       end
       Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
     end
