@@ -30,7 +30,7 @@ module Nginxtra
     # :worker_processes and :worker_connections options, which will
     # affect the resulting configuration.
     def simple_config(options = {}, &block)
-      SimpleConfig.new(options, &block).process!(self)
+      SimpleConfig.new(self, options, &block).process!
       self
     end
 
@@ -362,18 +362,20 @@ module Nginxtra
 
     # A class for encapsulating simple configuration.
     class SimpleConfig
+      attr_reader :config
       KNOWN_RAILS_SERVERS = [:passenger]
       DEFAULT_OPTIONS = { :worker_processes => 1, :worker_connections => 1024 }
       DEFAULT_RAILS_OPTIONS = { :port => 80, :server_name => "localhost", :root => ".", :server => :passenger }
 
-      def initialize(options, &block)
+      def initialize(config, options, &block)
+        @config = config
         @options = DEFAULT_OPTIONS.merge options
         @additional_blocks = []
         instance_eval &block
       end
 
       # Process the simple config with the given Config object.
-      def process!(config)
+      def process!
         options = @options
         additional_blocks = @additional_blocks
 
