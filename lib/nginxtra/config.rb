@@ -93,7 +93,7 @@ module Nginxtra
     # Define a new config file with the given filename and the block
     # to define it with.
     def file(filename, &block)
-      @files[filename] = Nginxtra::Config::ConfigFile.new(&block)
+      @files[filename] = Nginxtra::Config::ConfigFile.new(self, &block)
     end
 
     # Retrieve the files that have been defined.
@@ -253,7 +253,8 @@ module Nginxtra
 
     # Represents a config file being defined by nginxtra.conf.rb.
     class ConfigFile
-      def initialize(&block)
+      def initialize(config, &block)
+        @config = config
         @indentation = Nginxtra::Config::Indentation.new :indent_size => 4
         @file_contents = []
         instance_eval &block
@@ -319,6 +320,25 @@ module Nginxtra
         bare_config_line "}"
       end
 
+      # Process the given template.  Optionally, include options (as
+      # yielded values) available to the template.  The yielder passed
+      # in will be invoked (if given) if the template invokes yield.
+      def process_template!(template, options = {}, yielder = nil)
+        process_template_with_yields! template do |x|
+          if x
+            options[x.to_sym]
+          else
+            instance_eval &yielder if yielder
+          end
+        end
+      end
+
+      # Helper method for process_template! Which is expected to have
+      # a block passed in to handle yields from within the template.
+      def process_template_with_yields!(template)
+        instance_eval File.read(template)
+      end
+
       # Arbitrary config can be specified as long as the name doesn't
       # clash with one of the Config instance methods.
       #
@@ -362,70 +382,49 @@ module Nginxtra
 
     # A class for encapsulating simple configuration.
     class SimpleConfig
-      attr_reader :config
-      KNOWN_RAILS_SERVERS = [:passenger]
-      DEFAULT_OPTIONS = { :worker_processes => 1, :worker_connections => 1024 }
-      DEFAULT_RAILS_OPTIONS = { :port => 80, :server_name => "localhost", :root => ".", :server => :passenger }
-
-      def initialize(config, options, &block)
+      def initialize(config, options = {}, &block)
         @config = config
-        @options = DEFAULT_OPTIONS.merge options
-        @additional_blocks = []
+        @options = options
+        @invoked_partials = []
         instance_eval &block
       end
 
-      # Process the simple config with the given Config object.
+      # Process the simple config.
       def process!
-        options = @options
-        additional_blocks = @additional_blocks
+        process_files! File.join(Nginxtra::Config.gem_dir, "templates/files")
+      end
 
-        config.instance_eval do
-          require_passenger! if options[:include_passenger]
+      # Process all config files from the given path.
+      def process_files!(path)
+        Dir["#{path}/**/*.rb"].select do |x|
+          File.file? x
+        end.each do |x|
+          file_name = x.sub(/^#{Regexp.quote "#{path}"}\//, "").sub(/\.rb$/, "")
+          contents = File.read x
+          options = @options
+          invoked_partials = @invoked_partials
 
-          file "nginx.conf" do
-            worker_processes options[:worker_processes]
+          yielder = proc do
+            invoked_partials.each do |partial|
+              method, args, block = partial
+              partial_path = File.join Nginxtra::Config.gem_dir, "templates/partials/#{file_name}/#{method}.rb"
+              partial_options = {}
+              partial_options = args.first if args.length > 0 && args.first.kind_of?(Hash)
 
-            events do
-              worker_connections options[:worker_connections]
-            end
-
-            http do
-              passenger_root! if options[:include_passenger]
-              passenger_ruby! if options[:include_passenger]
-              include "mime.types"
-              default_type "application/octet-stream"
-              sendfile "on"
-              keepalive_timout 65
-              gzip "on"
-              additional_blocks.each do |block|
-                instance_eval &block
+              if File.exists? partial_path
+                process_template! partial_path, partial_options
               end
             end
+          end
+
+          @config.file file_name do
+            process_template! x, options, yielder
           end
         end
       end
 
-      # Add a rails configuration.  Options include :server (to
-      # specify what will serve rails to nginx), :port to mark what
-      # port the server will run on (defaults to 80), server_name for
-      # specifying the virtual host name (defaults to localhost), and
-      # :root to note the root rails directory (defaults to the
-      # current directory).
-      def rails(options = {})
-        options = DEFAULT_RAILS_OPTIONS.merge options
-        raise Nginxtra::Error::InvalidConfig.new("Unknown Rails server '#{options[:server]}'") unless KNOWN_RAILS_SERVERS.include? options[:server].to_sym
-        passenger = options[:server].to_sym == :passenger
-        @options[:include_passenger] = true if passenger
-
-        @additional_blocks << Proc.new do
-          server do
-            listen options[:port]
-            server_name options[:server_name]
-            root File.join(File.absolute_path(options[:root]), "public")
-            gzip_static "on"
-            passenger_enabled "on" if passenger
-          end
-        end
+      def method_missing(method, *args, &block)
+        @invoked_partials << [method, args, block]
       end
     end
 

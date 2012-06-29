@@ -320,13 +320,13 @@ events {
 }
 
 http {
-    passenger_root PASSENGER_ROOT;
-    passenger_ruby PASSENGER_RUBY;
     include mime.types;
     default_type application/octet-stream;
     sendfile on;
     keepalive_timout 65;
     gzip on;
+    passenger_root PASSENGER_ROOT;
+    passenger_ruby PASSENGER_RUBY;
 
     server {
         listen 80;
@@ -354,13 +354,13 @@ events {
 }
 
 http {
-    passenger_root PASSENGER_ROOT;
-    passenger_ruby PASSENGER_RUBY;
     include mime.types;
     default_type application/octet-stream;
     sendfile on;
     keepalive_timout 65;
     gzip on;
+    passenger_root PASSENGER_ROOT;
+    passenger_ruby PASSENGER_RUBY;
 
     server {
         listen 80;
