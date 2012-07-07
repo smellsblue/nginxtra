@@ -203,6 +203,17 @@ module Nginxtra
         File.join base_nginx_dir, "build"
       end
 
+      # Retrieve the directory where templates are loaded from.
+      def template_dir
+        File.join base_dir, "templates"
+      end
+
+      # Retrieve the directory within the gem where templates are
+      # loaded from.
+      def gem_template_dir
+        File.join gem_dir, "templates"
+      end
+
       # The path to the config directory where nginx config files are
       # stored (including nginx.conf).
       def config_dir
@@ -391,34 +402,65 @@ module Nginxtra
 
       # Process the simple config.
       def process!
-        process_files! File.join(Nginxtra::Config.gem_dir, "templates/files")
+        gem_files = find_config_files! File.join(Nginxtra::Config.gem_template_dir, "files")
+        override_files = find_config_files! File.join(Nginxtra::Config.template_dir, "files")
+
+        config_files = (gem_files.keys + override_files.keys).uniq.map do |x|
+          override_files[x] || gem_files[x]
+        end
+
+        process_files! config_files
       end
 
-      # Process all config files from the given path.
-      def process_files!(path)
+      # Find all the config files at the given path directory.  The
+      # result will be a hash of hashes.  The key on the outer hash is
+      # the output config file name, while the value is a hash of
+      # :path to the original file path, and :config_file to the
+      # output config file name.
+      def find_config_files!(path)
+        files_hash = {}
+
         Dir["#{path}/**/*.rb"].select do |x|
           File.file? x
+        end.map do |x|
+          file_name = x.sub /^#{Regexp.quote "#{path}"}\/(.*)\.rb$/, "\\1"
+          { :path => x, :config_file => file_name }
         end.each do |x|
-          file_name = x.sub(/^#{Regexp.quote "#{path}"}\//, "").sub(/\.rb$/, "")
-          contents = File.read x
+          files_hash[x[:config_file]] = x
+        end
+
+        files_hash
+      end
+
+      # Process all config files passed in, where each is a hash with
+      # :path to the original path of the file, and :config_file to
+      # the output config file name.
+      def process_files!(files)
+        files.each do |x|
+          path = x[:path]
+          file_name = x[:config_file]
           options = @options
           invoked_partials = @invoked_partials
 
           yielder = proc do
             invoked_partials.each do |partial|
               method, args, block = partial
-              partial_path = File.join Nginxtra::Config.gem_dir, "templates/partials/#{file_name}/#{method}.rb"
+              partial_end_path = "partials/#{file_name}/#{method}.rb"
+              partial_path = File.join Nginxtra::Config.gem_template_dir, partial_end_path
+              override_partial_path = File.join Nginxtra::Config.template_dir, partial_end_path
               partial_options = {}
               partial_options = args.first if args.length > 0 && args.first.kind_of?(Hash)
 
-              if File.exists? partial_path
+              if File.exists? override_partial_path
+                process_template! override_partial_path, partial_options
+              elsif File.exists? partial_path
                 process_template! partial_path, partial_options
               end
             end
           end
 
           @config.file file_name do
-            process_template! x, options, yielder
+            process_template! path, options, yielder
           end
         end
       end
