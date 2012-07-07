@@ -1,4 +1,5 @@
 def system_exec(cmd)
+  puts "Executing: #{cmd}"
   puts %x[#{cmd}]
 end
 
