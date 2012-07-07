@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 require "rubygems"
-gem "nginxtra", "= 1.2.2.3"
+gem "nginxtra", "= 1.2.2.4"
 require "nginxtra"
 Nginxtra::CLI.start

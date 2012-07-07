@@ -11,7 +11,7 @@ describe Nginxtra::Actions::Compile do
   let(:config_file) { File.join base_dir, "conf/nginx.conf" }
 
   it "compiles based on the passed in config" do
-    thor_mock.should_receive(:directory).with("src/nginx", src_dir)
+    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
     thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     thor_mock.should_receive(:run).with("make") { RunMock.success }
@@ -27,7 +27,7 @@ describe Nginxtra::Actions::Compile do
   end
 
   it "compiles based on the passed in config when different options were previously compiled" do
-    thor_mock.should_receive(:directory).with("src/nginx", src_dir)
+    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
     thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     thor_mock.should_receive(:run).with("make") { RunMock.success }
@@ -55,7 +55,7 @@ describe Nginxtra::Actions::Compile do
   end
 
   it "recompiles if force is passed in" do
-    thor_mock.should_receive(:directory).with("src/nginx", src_dir)
+    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
     thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
     thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     thor_mock.should_receive(:run).with("make") { RunMock.success }

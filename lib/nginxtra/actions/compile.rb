@@ -19,7 +19,7 @@ module Nginxtra
 
       # Copy the nginx source directory to the base directory.
       def copy_to_base
-        @thor.directory "src/nginx", Nginxtra::Config.src_dir
+        @thor.directory "vendor/nginx", Nginxtra::Config.src_dir
       end
 
       # Configure nginx with the specified compile options.
