@@ -8,7 +8,7 @@ http do
   include "mime.types"
   default_type "application/octet-stream"
   sendfile "on"
-  keepalive_timout 65
+  keepalive_timeout 65
   gzip "on"
   yield
 end

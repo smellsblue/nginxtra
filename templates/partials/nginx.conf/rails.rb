@@ -10,7 +10,7 @@ end
 server do
   listen(yield(:port) || 80)
   server_name(yield(:server_name) || "localhost")
-  root File.join(File.absolute_path(yield(:root) || "."), "public")
+  root File.join(File.absolute_path(File.expand_path(yield(:root) || ".")), "public")
   gzip_static "on"
   passenger_on! if rails_server == :passenger
 end

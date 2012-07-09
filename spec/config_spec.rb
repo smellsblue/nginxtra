@@ -306,6 +306,36 @@ http {
       Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
     end
 
+    it "allows very simple static site configuration" do
+      config = nginxtra.simple_config do
+        static
+      end
+
+      config.compile_options.should == "--with-http_gzip_static_module"
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "."};
+        gzip_static on;
+    }
+}
+"
+    end
+
     it "allows very simple rails configuration" do
       config = nginxtra.simple_config do
         rails
@@ -323,7 +353,7 @@ http {
     include mime.types;
     default_type application/octet-stream;
     sendfile on;
-    keepalive_timout 65;
+    keepalive_timeout 65;
     gzip on;
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;
@@ -357,7 +387,7 @@ http {
     include mime.types;
     default_type application/octet-stream;
     sendfile on;
-    keepalive_timout 65;
+    keepalive_timeout 65;
     gzip on;
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;
@@ -422,7 +452,7 @@ http {
     include mime.types;
     default_type application/octet-stream;
     sendfile on;
-    keepalive_timout 65;
+    keepalive_timeout 65;
     gzip on;
 
     this is {
