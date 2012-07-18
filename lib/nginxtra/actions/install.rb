@@ -22,6 +22,7 @@ module Nginxtra
         check_if_nginx_is_installed
         create_etc_script
         remember_config_location
+        remember_working_directory
         update_last_install
       end
 
@@ -43,6 +44,7 @@ module Nginxtra
       # via update-rc.d.
       def create_etc_script
         filename = "etc.init.d.nginxtra"
+        workingdir = File.expand_path "."
 
         @thor.inside Nginxtra::Config.base_dir do
           @thor.create_file filename, %{#!/bin/sh
@@ -59,7 +61,7 @@ module Nginxtra
 
 export GEM_HOME="#{ENV["GEM_HOME"]}"
 export GEM_PATH="#{ENV["GEM_PATH"]}"
-#{Nginxtra::Config.ruby_path} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}" --non-interactive
+#{Nginxtra::Config.ruby_path} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}" --workingdir="#{workingdir}" --non-interactive
 }, :force => true
           @thor.chmod filename, 0755
         end
@@ -86,6 +88,12 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
         # output to Yaml... so make it a string so it stays ascii
         # readable.
         Nginxtra::Status[:remembered_config] = Nginxtra::Config.loaded_config_path.to_s
+      end
+
+      # Remember the last working directory, and use it unless the
+      # working direcotry is explicitly passed in.
+      def remember_working_directory
+        Nginxtra::Status[:remembered_workingdir] = File.expand_path "."
       end
 
       # Mark the last installed version and last installed time (the

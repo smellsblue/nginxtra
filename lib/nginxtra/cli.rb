@@ -10,6 +10,7 @@ module Nginxtra
     class_option "ignore-nginx-check", :type => :boolean, :banner => "Ignore the nginx check if installing"
     class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
     class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
+    class_option "workingdir", :type => :string, :banner => "Specify the working directory", :aliases => "-w"
 
     desc "convert", "Convert an nginx.conf file to an nginxtra.conf.rb"
     long_desc "
@@ -42,6 +43,7 @@ module Nginxtra
       with the --force option."
     def compile
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Compile.new(self, prepare_config!).compile
       end
     end
@@ -70,6 +72,7 @@ module Nginxtra
       compile or install task should be invoked if those need to be forced."
     def start
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Start.new(self, prepare_config!).start
       end
     end
@@ -81,6 +84,7 @@ module Nginxtra
       (which will cause it to run the stop command regardless of the pidfile)."
     def stop
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Stop.new(self, prepare_config!).stop
       end
     end
@@ -88,6 +92,7 @@ module Nginxtra
     desc "restart", "Restart nginx"
     def restart
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Restart.new(self, prepare_config!).restart
       end
     end
@@ -96,6 +101,7 @@ module Nginxtra
     desc "reload", "Reload nginx"
     def reload
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Reload.new(self, prepare_config!).reload
       end
     end
@@ -103,6 +109,7 @@ module Nginxtra
     desc "status", "Check if nginx is running"
     def status
       Nginxtra::Error.protect self do
+        set_working_dir!
         Nginxtra::Actions::Status.new(self, prepare_config!).status
       end
     end
@@ -113,6 +120,14 @@ module Nginxtra
       result = Nginxtra::Config.require! options["config"]
       say "Using config #{Nginxtra::Config.loaded_config_path}"
       result
+    end
+
+    def set_working_dir!
+      if options["workingdir"]
+        Dir.chdir options["workingdir"]
+      elsif Nginxtra::Status[:remembered_workingdir]
+        Dir.chdir Nginxtra::Status[:remembered_workingdir]
+      end
     end
 
     class << self
