@@ -152,14 +152,9 @@ module Nginxtra
         last_config
       end
 
-      # The path to the VERSION file in the gem.
-      def version_file
-        File.join gem_dir, "VERSION"
-      end
-
       # The current version of nginxtra.
       def version
-        @version ||= File.read(version_file).strip
+        Nginxtra::Version.to_s
       end
 
       # The corresponding nginx version (based on the nginxtra
