@@ -13,8 +13,13 @@ module Nginxtra
       end
     end
 
-    # Raised if config conversion fails
+    # Raised if config conversion fails.
     class ConvertFailed < Nginxtra::Error::Base; end
+
+    # Raised when something is in an illegal state, such as when
+    # running nginxtra_rails from a directory other than a rails root
+    # directory.
+    class IllegalState < Nginxtra::Error::Base; end
 
     # Raised when an invalid configuration is specified, such as the
     # --prefix compile option.
@@ -26,7 +31,7 @@ module Nginxtra
     # Raised when installing and nginx is detected to be installed.
     class NginxDetected < Nginxtra::Error::Base; end
 
-    # Raised when a run command fails
+    # Raised when a run command fails.
     class RunFailed < Nginxtra::Error::Base; end
 
     class << self

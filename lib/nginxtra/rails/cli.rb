@@ -3,12 +3,16 @@ require "thor"
 module Nginxtra
   module Rails
     class CLI < Thor
-      desc "start", "Start rails using nginxtra"
-      def start
-        say "Not yet implemented..."
+      class_option "trace", :type => :boolean, :banner => "Output stack traces on error"
+
+      desc "server", "Start rails using nginxtra"
+      def server
+        Nginxtra::Error.protect self do
+          Nginxtra::Actions::Rails::Server.new(self, nil).server
+        end
       end
 
-      default_task :start
+      default_task :server
     end
   end
 end
