@@ -13,4 +13,5 @@ server do
   root File.join(File.absolute_path(File.expand_path(yield(:root) || ".")), "public")
   gzip_static "on"
   passenger_on! if rails_server == :passenger
+  rails_env(yield(:environment) || "production")
 end

@@ -9,9 +9,11 @@ module Nginxtra
           ensure_server_gem_installed
 
           begin
+            start_verbose_output
             start_nginxtra
             wait_till_finished
           ensure
+            stop_verbose_output
             stop_nginxtra
           end
         end
@@ -30,14 +32,16 @@ module Nginxtra
 
         def start_nginxtra
           port = @thor.options["port"]
+          environment = @thor.options["environment"]
           @thor.empty_directory "tmp" unless File.directory? "tmp"
           @thor.empty_directory "tmp/nginxtra" unless File.directory? "tmp/nginxtra"
           @thor.create_file config_path, %{nginxtra.simple_config do
-  rails :port => #{port}
+  rails :port => #{port}, :environment => "#{environment}"
 end
 }, :force => true
           @thor.invoke Nginxtra::CLI, ["start"], :basedir => basedir, :config => config_path, :workingdir => workingdir, :"non-interactive" => true
           @thor.say "Listening on http://localhost:#{port}/"
+          @thor.say "Environment: #{environment}"
         end
 
         def wait_till_finished
@@ -71,6 +75,50 @@ end
         def in_rails_app?
           return true if File.exists? "script/rails"
           File.exists?("script/server") && File.exists?("app")
+        end
+
+        def start_verbose_output
+          return unless @thor.options["verbose"]
+          @verbose_run = true
+          Thread.new { verbose_thread }
+        end
+
+        def stop_verbose_output
+          return unless @thor.options["verbose"]
+          @verbose_run = false
+        end
+
+        def verbose_thread
+          environment = @thor.options["environment"]
+          log_path = "log/#{environment}.log"
+
+          if File.exists? log_path
+            log = File.open log_path, "r"
+            log.seek 0, IO::SEEK_END
+          else
+            while @verbose_run
+              if File.exists? log_path
+                log = File.open log_path, "r"
+                break
+              end
+
+              sleep 0.1
+            end
+          end
+
+          while @verbose_run
+            select [log]
+            line = log.gets
+
+            if line
+              puts line
+              puts line while(line = log.gets)
+            end
+
+            sleep 0.1
+          end
+        ensure
+          log.close if log
         end
       end
     end

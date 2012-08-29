@@ -12,6 +12,8 @@ module Nginxtra
     class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
     class_option "workingdir", :type => :string, :banner => "Specify the working directory", :aliases => "-w"
 
+    map "-v" => "version"
+
     desc "convert", "Convert an nginx.conf file to an nginxtra.conf.rb"
     long_desc "
       Parse nginx.conf and convert it to an equivalent nginxtra.conf.rb file.  Expects
@@ -111,6 +113,15 @@ module Nginxtra
       Nginxtra::Error.protect self do
         set_working_dir!
         Nginxtra::Actions::Status.new(self, prepare_config!).status
+      end
+    end
+
+    desc "version", "Show the nginxtra version"
+    long_desc "
+      This can be optionally used as 'nginxtra -v'"
+    def version
+      Nginxtra::Error.protect self do
+        say Nginxtra::Version
       end
     end
 
