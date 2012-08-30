@@ -48,11 +48,10 @@ module Nginxtra
       @requires_root
     end
 
-    # Require passenger.  This will include http_ssl_module,
-    # http_gzip_static_module, add a Wno-error compilation option, and
-    # add the passenger module to the proper passenger path.
+    # Require passenger.  This will include http_gzip_static_module,
+    # add a Wno-error compilation option, and add the passenger module
+    # to the proper passenger path.
     def require_passenger!
-      compile_option %{--with-http_ssl_module}
       compile_option %{--with-http_gzip_static_module}
       compile_option %{--with-cc-opt=-Wno-error}
       compile_option %{--add-module="#{File.join Nginxtra::Config.passenger_spec.gem_dir, "ext/nginx"}"}
@@ -447,9 +446,9 @@ module Nginxtra
               partial_options = args.first if args.length > 0 && args.first.kind_of?(Hash)
 
               if File.exists? override_partial_path
-                process_template! override_partial_path, partial_options
+                process_template! override_partial_path, partial_options, block
               elsif File.exists? partial_path
-                process_template! partial_path, partial_options
+                process_template! partial_path, partial_options, block
               end
             end
           end

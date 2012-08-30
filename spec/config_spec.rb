@@ -341,7 +341,7 @@ http {
         rails
       end
 
-      config.compile_options.should == %{--with-http_ssl_module --with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      config.compile_options.should == %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 
@@ -364,6 +364,7 @@ http {
         root #{File.absolute_path "public"};
         gzip_static on;
         passenger_enabled on;
+        rails_env production;
     }
 }
 "
@@ -375,7 +376,7 @@ http {
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end
 
-      config.compile_options.should == %{--with-http_ssl_module --with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      config.compile_options.should == %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
 
@@ -398,6 +399,7 @@ http {
         root #{File.absolute_path "public"};
         gzip_static on;
         passenger_enabled on;
+        rails_env production;
     }
 
     server {
@@ -406,6 +408,7 @@ http {
         root /path/to/rails/public;
         gzip_static on;
         passenger_enabled on;
+        rails_env production;
     }
 }
 "
@@ -473,6 +476,125 @@ http {
 "
     end
 
+    it "allows partials with yields" do
+      other_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/other.rb"
+
+      class << File
+        alias_method :orig_exists?, :exists?
+        alias_method :orig_read, :read
+      end
+
+      File.should_receive(:exists?).twice.with(other_path).and_return(true)
+      File.stub(:exists?) { |path| File.orig_exists? path }
+      File.should_receive(:read).twice.with(other_path).and_return("
+inside_other do
+  we_have 'more_code'
+  with_some yield(:extra)
+  yield
+end
+")
+      File.stub(:read) { |path| File.orig_read path }
+      config = nginxtra.simple_config do
+        other :extra => "butter" do
+          additional "content"
+          with_more "yielded content"
+        end
+
+        other :extra => "syrup"
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    inside_other {
+        we_have more_code;
+        with_some butter;
+        additional content;
+        with_more yielded content;
+    }
+
+    inside_other {
+        we_have more_code;
+        with_some syrup;
+    }
+}
+"
+    end
+
+    it "allows nested partials" do
+      pending "This doesn't work without some more work, so punted until nested partials is actually needed."
+      other_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/other.rb"
+
+      class << File
+        alias_method :orig_exists?, :exists?
+        alias_method :orig_read, :read
+      end
+
+      File.should_receive(:exists?).twice.with(other_path).and_return(true)
+      File.stub(:exists?) { |path| File.orig_exists? path }
+      File.should_receive(:read).twice.with(other_path).and_return("
+inside_other do
+  we_have 'more_code'
+  with_some yield(:extra)
+  yield
+end
+")
+      File.stub(:read) { |path| File.orig_read path }
+      config = nginxtra.simple_config do
+        other :extra => "butter" do
+          other :extra => "syrup" do
+            other :extra => "salt"
+          end
+
+          additional "content"
+          with_more "yielded content"
+        end
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    inside_other {
+        we_have more_code;
+        with_some butter;
+
+        inside_other {
+            we_have more_code;
+            with_some syrup;
+
+            inside_other {
+                we_have more_code;
+                with_some salt;
+            }
+        }
+
+        additional content;
+        with_more yielded content;
+    }
+}
+"
+    end
+
     it "allows templates to be overridden" do
       nginx_path = File.join Nginxtra::Config.template_dir, "files/nginx.conf.rb"
 
@@ -512,6 +634,7 @@ end
         root #{File.absolute_path "public"};
         gzip_static on;
         passenger_enabled on;
+        rails_env production;
     }
 
     server {
@@ -520,6 +643,7 @@ end
         root /path/to/rails/public;
         gzip_static on;
         passenger_enabled on;
+        rails_env production;
     }
 }
 "
