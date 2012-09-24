@@ -8,11 +8,65 @@ module Nginxtra
     NGINX_PIDFILE_FILENAME = ".nginx_pid".freeze
     @@last_config = nil
 
-    def initialize
+    def initialize(*args)
       @requires_root = false
       @compile_options = []
+      @partial_paths = []
+      @file_paths = []
       @files = {}
       @@last_config = self
+
+      if block_given?
+        yield self
+      end
+    end
+
+    # Define an additional directory where partials can be found.  The
+    # passed in path should have directories listed by configuration
+    # file, then partials within those.
+    #
+    # For example:
+    # custom_partials "/my/path"
+    #   /my/path/nginx.conf/rails.rb
+    #   /my/path/nginx.conf/static.rb
+    def custom_partials(path)
+      @partial_paths << path
+    end
+
+    # Define an additional directory where file templates can be
+    # found.  The passed in path should have file templates within it.
+    #
+    # For example:
+    # custom_files "/my/path"
+    #   /my/path/nginx.conf.rb
+    def custom_files(path)
+      @file_paths << path
+    end
+
+    # Retrieve an array of directories where partials can be
+    # contained.  This includes the custom partial directories added
+    # with the "custom_partials" method, in the order they were added,
+    # then the standard override location, and finally the standard
+    # gem partials.
+    def partial_paths
+      [].tap do |result|
+        result.push *@partial_paths
+        result.push File.join(Nginxtra::Config.template_dir, "partials")
+        result.push File.join(Nginxtra::Config.gem_template_dir, "partials")
+      end
+    end
+
+    # Retrieve an array of directories where file templates can be
+    # contained.  This includes the custom file directories added with
+    # the "custom_files" method, in the order they were added, then
+    # the standard override location, and finally the standard gem
+    # file templates.
+    def file_paths
+      [].tap do |result|
+        result.push *@file_paths
+        result.push File.join(Nginxtra::Config.template_dir, "files")
+        result.push File.join(Nginxtra::Config.gem_template_dir, "files")
+      end
     end
 
     # This method is used to configure nginx via nginxtra.  Inside
@@ -396,11 +450,14 @@ module Nginxtra
 
       # Process the simple config.
       def process!
-        gem_files = find_config_files! File.join(Nginxtra::Config.gem_template_dir, "files")
-        override_files = find_config_files! File.join(Nginxtra::Config.template_dir, "files")
+        file_options = @config.file_paths.map do |path|
+          find_config_files! path
+        end
 
-        config_files = (gem_files.keys + override_files.keys).uniq.map do |x|
-          override_files[x] || gem_files[x]
+        config_files = file_options.map(&:keys).inject([], &:+).uniq.map do |x|
+          file_options.select do |option|
+            option.include? x
+          end.first[x]
         end
 
         process_files! config_files
@@ -433,22 +490,23 @@ module Nginxtra
         files.each do |x|
           path = x[:path]
           file_name = x[:config_file]
+          config = @config
           options = @options
           invoked_partials = @invoked_partials
 
           yielder = proc do
             invoked_partials.each do |partial|
               method, args, block = partial
-              partial_end_path = "partials/#{file_name}/#{method}.rb"
-              partial_path = File.join Nginxtra::Config.gem_template_dir, partial_end_path
-              override_partial_path = File.join Nginxtra::Config.template_dir, partial_end_path
               partial_options = {}
               partial_options = args.first if args.length > 0 && args.first.kind_of?(Hash)
 
-              if File.exists? override_partial_path
-                process_template! override_partial_path, partial_options, block
-              elsif File.exists? partial_path
-                process_template! partial_path, partial_options, block
+              config.partial_paths.each do |path|
+                partial_path = File.join path, "#{file_name}/#{method}.rb"
+
+                if File.exists? partial_path
+                  process_template! partial_path, partial_options, block
+                  break
+                end
               end
             end
           end
@@ -503,6 +561,6 @@ end
 #   nginxtra.config do
 #     ...
 #   end
-def nginxtra
-  Nginxtra::Config.new
+def nginxtra(*args, &block)
+  Nginxtra::Config.new *args, &block
 end

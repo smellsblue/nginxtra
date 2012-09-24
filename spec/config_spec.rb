@@ -261,6 +261,7 @@ http {
 
   describe "require!" do
     it "should require the config and then return the last config" do
+      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       config = nil
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
@@ -272,11 +273,13 @@ http {
     end
 
     it "raises an error if the config file cannot be found" do
+      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return(nil)
       lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
     end
 
     it "raises an error if the config file doesn't specify any configuration" do
+      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
         nil
@@ -314,6 +317,37 @@ http {
       config.compile_options.should == "--with-http_gzip_static_module"
       config.files.should == ["nginx.conf"]
       config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "."};
+        gzip_static on;
+    }
+}
+"
+    end
+
+    it "allows run_as option" do
+      config = nginxtra.simple_config :run_as => "run_as_user" do
+        static
+      end
+
+      config.compile_options.should == "--with-http_gzip_static_module"
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "user run_as_user;
+worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -440,6 +474,70 @@ end
 ")
       File.stub(:read) { |path| File.orig_read path }
       config = nginxtra.simple_config do
+        rails :port => 8080
+        other :extra => "butter"
+        other :extra => "syrup"
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    this is {
+        an_example overridden_file;
+        with_port 8080;
+    }
+
+    inside_other {
+        we_have more_code;
+        with_some butter;
+    }
+
+    inside_other {
+        we_have more_code;
+        with_some syrup;
+    }
+}
+"
+    end
+
+    it "allows partials to be overridden from custom paths" do
+      rails_path = "/my_custom_partials/nginx.conf/rails.rb"
+      other_path = "/my_custom_partials/nginx.conf/other.rb"
+
+      class << File
+        alias_method :orig_exists?, :exists?
+        alias_method :orig_read, :read
+      end
+
+      File.should_receive(:exists?).with(rails_path).and_return(true)
+      File.should_receive(:exists?).twice.with(other_path).and_return(true)
+      File.stub(:exists?) { |path| File.orig_exists? path }
+      File.should_receive(:read).with(rails_path).and_return("
+this 'is' do
+  an_example :overridden_file
+  with_port(yield(:port) || 80)
+end
+")
+      File.should_receive(:read).twice.with(other_path).and_return("
+inside_other do
+  we_have 'more_code'
+  with_some yield(:extra)
+end
+")
+      File.stub(:read) { |path| File.orig_read path }
+      config = nginxtra do |n|
+        n.custom_partials "/my_custom_partials"
+      end.simple_config do
         rails :port => 8080
         other :extra => "butter"
         other :extra => "syrup"
@@ -619,6 +717,62 @@ end
 ")
       File.stub(:read) { |path| File.orig_read path }
       config = nginxtra.simple_config do
+        rails
+        rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
+      end
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "the_nginx_conf {
+    has_been changed;
+    passenger_root PASSENGER_ROOT;
+    passenger_ruby PASSENGER_RUBY;
+
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "public"};
+        gzip_static on;
+        passenger_enabled on;
+        rails_env production;
+    }
+
+    server {
+        listen 8080;
+        server_name otherserver.com;
+        root /path/to/rails/public;
+        gzip_static on;
+        passenger_enabled on;
+        rails_env production;
+    }
+}
+"
+    end
+
+    it "allows templates to be overridden from custom paths" do
+      nginx_path = "/my_custom_files/nginx.conf.rb"
+
+      class << Dir
+        alias_method :orig_bracket, :[]
+      end
+
+      class << File
+        alias_method :orig_read, :read
+        alias_method :orig_file?, :file?
+      end
+
+      Dir.should_receive(:[]).with("/my_custom_files/**/*.rb").and_return([nginx_path])
+      Dir.stub(:[]) { |blob| Dir.orig_bracket blob }
+      File.should_receive(:file?).with(nginx_path).and_return(true)
+      File.stub(:file?) { |name| File.orig_file? name }
+      File.should_receive(:read).with(nginx_path).and_return("
+the_nginx_conf do
+  has_been :changed
+  yield
+end
+")
+      File.stub(:read) { |path| File.orig_read path }
+      config = nginxtra do |n|
+        n.custom_files "/my_custom_files"
+      end.simple_config do
         rails
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end

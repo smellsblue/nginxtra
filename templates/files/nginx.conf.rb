@@ -1,3 +1,5 @@
+run_as_user = yield :run_as
+user run_as_user if run_as_user
 worker_processes(yield(:worker_processes) || 1)
 
 events do
