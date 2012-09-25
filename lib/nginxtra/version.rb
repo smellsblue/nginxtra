@@ -2,7 +2,7 @@ module Nginxtra
   class Version
     class << self
       def to_s
-        "1.2.3.8"
+        "1.2.4.7"
       end
     end
   end
