@@ -1,6 +1,23 @@
 require "spec_helper"
 
 describe Nginxtra::Config do
+  def stub_files(files)
+    class << File
+      alias_method :orig_exists?, :exists?
+      alias_method :orig_read, :read
+    end
+
+    File.stub(:exists?) do |path|
+      next true if files.include? path
+      File.orig_exists? path
+    end
+
+    File.stub(:read) do |path|
+      next files[path] if files.include? path
+      File.orig_read path
+    end
+  end
+
   it "remembers the last config created" do
     Nginxtra::Config.last_config.should == nil
     config1 = nginxtra
@@ -448,31 +465,72 @@ http {
 "
     end
 
+    it "allows partials and regular blocks together" do
+      config = nginxtra.simple_config do
+        another_block do
+          with_some "content"
+        end
+
+        and_another_block do
+          with_some_other "content"
+        end
+
+        static
+
+        and_a_regular_option 42
+      end
+
+      config.compile_options.should == "--with-http_gzip_static_module"
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    another_block {
+        with_some content;
+    }
+
+    and_another_block {
+        with_some_other content;
+    }
+
+    server {
+        listen 80;
+        server_name localhost;
+        root #{File.absolute_path "."};
+        gzip_static on;
+    }
+
+    and_a_regular_option 42;
+}
+"
+    end
+
     it "allows partials to be overridden" do
       rails_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/rails.rb"
       other_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/other.rb"
 
-      class << File
-        alias_method :orig_exists?, :exists?
-        alias_method :orig_read, :read
-      end
-
-      File.should_receive(:exists?).with(rails_path).and_return(true)
-      File.should_receive(:exists?).twice.with(other_path).and_return(true)
-      File.stub(:exists?) { |path| File.orig_exists? path }
-      File.should_receive(:read).with(rails_path).and_return("
+      stub_files rails_path => "
 this 'is' do
   an_example :overridden_file
   with_port(yield(:port) || 80)
 end
-")
-      File.should_receive(:read).twice.with(other_path).and_return("
+", other_path => "
 inside_other do
   we_have 'more_code'
   with_some yield(:extra)
 end
-")
-      File.stub(:read) { |path| File.orig_read path }
+"
+
       config = nginxtra.simple_config do
         rails :port => 8080
         other :extra => "butter"
@@ -513,28 +571,18 @@ http {
     it "allows partials to be overridden from custom paths" do
       rails_path = "/my_custom_partials/nginx.conf/rails.rb"
       other_path = "/my_custom_partials/nginx.conf/other.rb"
-
-      class << File
-        alias_method :orig_exists?, :exists?
-        alias_method :orig_read, :read
-      end
-
-      File.should_receive(:exists?).with(rails_path).and_return(true)
-      File.should_receive(:exists?).twice.with(other_path).and_return(true)
-      File.stub(:exists?) { |path| File.orig_exists? path }
-      File.should_receive(:read).with(rails_path).and_return("
+      stub_files rails_path => "
 this 'is' do
   an_example :overridden_file
   with_port(yield(:port) || 80)
 end
-")
-      File.should_receive(:read).twice.with(other_path).and_return("
+", other_path => "
 inside_other do
   we_have 'more_code'
   with_some yield(:extra)
 end
-")
-      File.stub(:read) { |path| File.orig_read path }
+"
+
       config = nginxtra do |n|
         n.custom_partials "/my_custom_partials"
       end.simple_config do
@@ -576,22 +624,14 @@ http {
 
     it "allows partials with yields" do
       other_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/other.rb"
-
-      class << File
-        alias_method :orig_exists?, :exists?
-        alias_method :orig_read, :read
-      end
-
-      File.should_receive(:exists?).twice.with(other_path).and_return(true)
-      File.stub(:exists?) { |path| File.orig_exists? path }
-      File.should_receive(:read).twice.with(other_path).and_return("
+      stub_files other_path => "
 inside_other do
   we_have 'more_code'
   with_some yield(:extra)
   yield
 end
-")
-      File.stub(:read) { |path| File.orig_read path }
+"
+
       config = nginxtra.simple_config do
         other :extra => "butter" do
           additional "content"
@@ -630,24 +670,16 @@ http {
     end
 
     it "allows nested partials" do
-      pending "This doesn't work without some more work, so punted until nested partials is actually needed."
       other_path = File.join Nginxtra::Config.template_dir, "partials/nginx.conf/other.rb"
 
-      class << File
-        alias_method :orig_exists?, :exists?
-        alias_method :orig_read, :read
-      end
-
-      File.should_receive(:exists?).twice.with(other_path).and_return(true)
-      File.stub(:exists?) { |path| File.orig_exists? path }
-      File.should_receive(:read).twice.with(other_path).and_return("
+      stub_files other_path => "
 inside_other do
   we_have 'more_code'
   with_some yield(:extra)
   yield
 end
-")
-      File.stub(:read) { |path| File.orig_read path }
+"
+
       config = nginxtra.simple_config do
         other :extra => "butter" do
           other :extra => "syrup" do

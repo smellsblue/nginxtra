@@ -146,7 +146,7 @@ module Nginxtra
     # Define a new config file with the given filename and the block
     # to define it with.
     def file(filename, &block)
-      @files[filename] = Nginxtra::Config::ConfigFile.new(self, &block)
+      @files[filename] = Nginxtra::Config::ConfigFile.new filename, self, &block
     end
 
     # Retrieve the files that have been defined.
@@ -312,7 +312,8 @@ module Nginxtra
 
     # Represents a config file being defined by nginxtra.conf.rb.
     class ConfigFile
-      def initialize(config, &block)
+      def initialize(filename, config, &block)
+        @filename = filename
         @config = config
         @indentation = Nginxtra::Config::Indentation.new :indent_size => 4
         @file_contents = []
@@ -335,7 +336,9 @@ module Nginxtra
       #     config_line "worker_processes 42"
       #   end
       def config_line(contents)
+        empty_config_line if @end_of_block
         @begin_of_block = false
+        @end_of_block = false
         bare_config_line "#{contents};"
       end
 
@@ -348,12 +351,14 @@ module Nginxtra
       #   end
       def bare_config_line(contents)
         @begin_of_block = false
+        @end_of_block = false
         @file_contents << "#{@indentation}#{contents}"
       end
 
       # Add an empty config line to the resulting config file.
       def empty_config_line
         @begin_of_block = false
+        @end_of_block = false
         @file_contents << ""
       end
 
@@ -377,6 +382,7 @@ module Nginxtra
         yield if block_given?
         @indentation - 1
         bare_config_line "}"
+        @end_of_block = true
       end
 
       # Process the given template.  Optionally, include options (as
@@ -413,12 +419,10 @@ module Nginxtra
       # Any arguments the the method will be joined with the method name
       # with a space to produce the output.
       def method_missing(method, *args, &block)
-        values = [method, *args].join " "
-
-        if block
-          config_block values, &block
+        if partial? method
+          invoke_partial method, args, block
         else
-          config_line values
+          process_config_block_or_line method, args, block
         end
       end
 
@@ -437,6 +441,41 @@ module Nginxtra
       def passenger_on!
         config_line %{passenger_enabled on}
       end
+
+      private
+      def partial?(partial_name)
+        @config.partial_paths.any? do |path|
+          File.exists? File.join(path, "#{@filename}/#{partial_name}.rb")
+        end
+      end
+
+      def invoke_partial(partial_name, args, block)
+        partial_path = @config.partial_paths.map do |path|
+          File.join path, "#{@filename}/#{partial_name}.rb"
+        end.find do |path|
+          File.exists? path
+        end
+
+        if args.empty?
+          partial_options = {}
+        elsif args.length == 1 && args.first.kind_of?(Hash)
+          partial_options = args.first
+        else
+          raise InvalidConfig.new("Invalid partial arguments", :header => "Invalid partial arguments!", :message => "You can only pass 0 arguments or 1 hash to a partial!")
+        end
+
+        process_template! partial_path, partial_options, block
+      end
+
+      def process_config_block_or_line(name, args, block)
+        values = [name, *args].join " "
+
+        if block
+          config_block values, &block
+        else
+          config_line values
+        end
+      end
     end
 
     # A class for encapsulating simple configuration.
@@ -444,8 +483,7 @@ module Nginxtra
       def initialize(config, options = {}, &block)
         @config = config
         @options = options
-        @invoked_partials = []
-        instance_eval &block
+        @block = block
       end
 
       # Process the simple config.
@@ -489,36 +527,14 @@ module Nginxtra
       def process_files!(files)
         files.each do |x|
           path = x[:path]
-          file_name = x[:config_file]
-          config = @config
+          filename = x[:config_file]
           options = @options
-          invoked_partials = @invoked_partials
+          block = @block
 
-          yielder = proc do
-            invoked_partials.each do |partial|
-              method, args, block = partial
-              partial_options = {}
-              partial_options = args.first if args.length > 0 && args.first.kind_of?(Hash)
-
-              config.partial_paths.each do |path|
-                partial_path = File.join path, "#{file_name}/#{method}.rb"
-
-                if File.exists? partial_path
-                  process_template! partial_path, partial_options, block
-                  break
-                end
-              end
-            end
-          end
-
-          @config.file file_name do
-            process_template! path, options, yielder
+          @config.file filename do
+            process_template! path, options, block
           end
         end
-      end
-
-      def method_missing(method, *args, &block)
-        @invoked_partials << [method, args, block]
       end
     end
 
