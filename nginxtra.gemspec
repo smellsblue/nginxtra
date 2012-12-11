@@ -3,7 +3,7 @@ require "rubygems/package_task"
 
 Gem::Specification.new do |s|
   s.name           = "nginxtra"
-  s.version        = "1.2.5.7"
+  s.version        = "1.2.6.7"
   s.summary        = "Wrapper of nginx for easy install and use."
   s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be used to compile nginx and configure the configuration."
   s.author         = "Mike Virata-Stone"
