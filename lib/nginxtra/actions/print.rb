@@ -6,6 +6,8 @@ module Nginxtra
       def print
         if @thor.options["list"]
           @thor.say "Known config files:\n  #{@config.files.sort.join "\n  "}"
+        elsif @thor.options["compile-options"]
+          @thor.say "Compilation options:\n  #{@config.compile_options}"
         elsif @config.files.include?(file)
           @thor.say @config.file_contents(file)
         else

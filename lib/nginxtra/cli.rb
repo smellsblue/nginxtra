@@ -40,9 +40,11 @@ module Nginxtra
     long_desc "
       Output the contents of nginx.conf, as it is defined in nginxtra.conf.rb.  If the
       --file is provided, something other than nginx.conf can be output.  The --list
-      option can be provided to list known config files."
+      option can be provided to list known config files.  The --compile-options option
+      can be provided to list compile time options being passed to nginx."
+    method_option "compile-options", :type => :boolean, :banner => "Show compile options being used", :aliases => "-C"
     method_option "file", :type => :string, :banner => "The config file that is printed", :aliases => "-F", :default => "nginx.conf"
-    method_option "list", :type => :boolean, :banner => "List known files.", :aliases => "-l"
+    method_option "list", :type => :boolean, :banner => "List known files", :aliases => "-l"
     def print
       Nginxtra::Error.protect self do
         set_working_dir!
