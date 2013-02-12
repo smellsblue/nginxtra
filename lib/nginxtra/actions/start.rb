@@ -12,7 +12,6 @@ module Nginxtra
       def start
         without_force do
           compile
-          install
         end
 
         return no_need_to_start unless should_start?
@@ -24,11 +23,6 @@ module Nginxtra
       # Invoke nginx compilation, to ensure it is up to date.
       def compile
         Nginxtra::Actions::Compile.new(@thor, @config).compile
-      end
-
-      # Invoke nginxtra installation, but only if the user allows it.
-      def install
-        Nginxtra::Actions::Install.new(@thor, @config).optional_install
       end
 
       # Save nginx config files to the proper config file path.

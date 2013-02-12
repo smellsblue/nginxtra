@@ -124,6 +124,30 @@ worker_processes 42;
 "
     end
 
+    it "allows if, break and return" do
+      config = nginxtra.config do
+        file "nginx.conf" do
+          _if "example_1" do
+            _return "something"
+          end
+
+          _if "example_2" do
+            _break "something_else"
+          end
+        end
+      end
+
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "if (example_1) {
+    return something;
+}
+
+if (example_2) {
+    break something_else;
+}
+"
+    end
+
     it "allows line definitions without semicolon" do
       config = nginxtra.config do
         file "nginx.conf" do
@@ -236,14 +260,22 @@ http {
       Nginxtra::Config.path.should == "/home/example/some/path/nginxtra.conf.rb"
     end
 
+    it "finds the config file if it is in the current directory's config directory" do
+      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
+      Nginxtra::Config.path.should == "/home/example/some/path/config/nginxtra.conf.rb"
+    end
+
     it "finds the config file if it is in the first parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
       Nginxtra::Config.path.should == "/home/example/some/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the second parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(true)
       Nginxtra::Config.path.should == "/home/example/nginxtra.conf.rb"
@@ -251,6 +283,7 @@ http {
 
     it "finds the config file if it is in the third parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(true)
@@ -259,6 +292,7 @@ http {
 
     it "finds the config file if it is in the fourth parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
@@ -268,6 +302,7 @@ http {
 
     it "returns nil if no config file is found" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
@@ -278,7 +313,6 @@ http {
 
   describe "require!" do
     it "should require the config and then return the last config" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       config = nil
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
@@ -290,13 +324,11 @@ http {
     end
 
     it "raises an error if the config file cannot be found" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return(nil)
       lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
     end
 
     it "raises an error if the config file doesn't specify any configuration" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
         nil
@@ -324,6 +356,7 @@ http {
         Object.new.tap { |o| o.stub(:gem_dir).and_return("PASSENGER_ROOT") }
       end
       Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
+      Nginxtra::Config::Extension.clear_partials!
     end
 
     it "allows very simple static site configuration" do
@@ -511,6 +544,62 @@ http {
     }
 
     and_a_regular_option 42;
+}
+"
+    end
+
+    it "allows extensions to define partials" do
+      Nginxtra::Config::Extension.partial "nginx.conf", "other" do |args, block|
+        some "custom" do
+          partials "defined_here"
+          with_some(args[:extra] || "something")
+          block.call
+        end
+      end
+
+      config = nginxtra.simple_config do
+        other :extra => "syrup"
+
+        other do
+          other :extra => "foo" do
+            other :extra => "bar"
+          end
+        end
+      end
+
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    some custom {
+        partials defined_here;
+        with_some syrup;
+    }
+
+    some custom {
+        partials defined_here;
+        with_some something;
+
+        some custom {
+            partials defined_here;
+            with_some foo;
+
+            some custom {
+                partials defined_here;
+                with_some bar;
+            }
+        }
+    }
 }
 "
     end

@@ -41,6 +41,42 @@ end
 }
   end
 
+  it "handles return, if and break keywords" do
+    converter.convert :config => StringIO.new("if (some ~ condition) {
+  return something;
+}
+
+if (condition) {
+  break another;
+}
+")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    _if "some", "~", "condition" do
+      _return "something"
+    end
+    _if "condition" do
+      _break "another"
+    end
+  end
+end
+}
+  end
+
+  it "deals with backslash property" do
+    converter.convert :config => StringIO.new("events \\.testing {
+  worker_connections 10;
+}")
+    output.string.should == %{nginxtra.config do
+  file "nginx.conf" do
+    events "\\\\.testing" do
+      worker_connections 10
+    end
+  end
+end
+}
+  end
+
   it "ignores comments in a line" do
     converter.convert :config => StringIO.new("# A header comment
 user    my_user; # A line comment

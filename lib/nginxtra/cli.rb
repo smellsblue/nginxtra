@@ -26,13 +26,29 @@ module Nginxtra
       nginxtra.conf.rb).  The result will be output to nginxtra.conf.rb in the current
       directory, unless an override value is specified with the --config option."
     method_option "nginx-bin", :type => :string, :banner => "Point to the compiled nginx to retrieve compile options", :aliases => "-n"
-    method_option "nginx-conf", :type => :string, :banner => "Point to the nginx.conf file to retrieve the existing configuration", :aliases => "-", :default => "nginx.conf"
+    method_option "nginx-conf", :type => :string, :banner => "Point to the nginx.conf file to retrieve the existing configuration", :aliases => "-F", :default => "nginx.conf"
     method_option "ignore-nginx-bin", :type => :boolean, :banner => "Ignore the nginx binary, and assume default compile time options", :aliases => "-N"
     method_option "output", :type => :boolean, :banner => "Output to standard out instead of to a file", :aliases => "-o"
     method_option "input", :type => :boolean, :banner => "Read nginx.conf from standard in instead of a file", :aliases => "-i"
     def convert
       Nginxtra::Error.protect self do
         Nginxtra::Actions::Convert.new(self, nil).convert
+      end
+    end
+
+    desc "print", "Output nginxtra.conf.rb as it is processed as nginx.conf"
+    long_desc "
+      Output the contents of nginx.conf, as it is defined in nginxtra.conf.rb.  If the
+      --file is provided, something other than nginx.conf can be output.  The --list
+      option can be provided to list known config files.  The --compile-options option
+      can be provided to list compile time options being passed to nginx."
+    method_option "compile-options", :type => :boolean, :banner => "Show compile options being used", :aliases => "-C"
+    method_option "file", :type => :string, :banner => "The config file that is printed", :aliases => "-F", :default => "nginx.conf"
+    method_option "list", :type => :boolean, :banner => "List known files", :aliases => "-l"
+    def print
+      Nginxtra::Error.protect self do
+        set_working_dir!
+        Nginxtra::Actions::Print.new(self, prepare_config!).print
       end
     end
 
@@ -66,12 +82,11 @@ module Nginxtra
     long_desc "
       Start nginx based on nginxtra.conf.rb.  If nginx has not yet been compiled for
       the given compilation options or the current nginx version, it will be compiled.
-      If nginxtra has not been installed for the current version, the user will be
-      asked if it is ok to install. The configuration for nginx will automatically be
-      handled by nginxtra so it matches what is defined in nginxtra.conf.rb.  If it is
-      already running, this will do nothing, unless --force is passed.  Note that
-      compilation and installation will NOT be forced with --force option.  The
-      compile or install task should be invoked if those need to be forced."
+      The configuration for nginx will automatically be handled by nginxtra so it
+      matches what is defined in nginxtra.conf.rb.  If it is already running, this
+      will do nothing, unless --force is passed.  Note that compilation will NOT be
+      forced with the --force option and should be invoked separately if it needs to
+      be forced."
     def start
       Nginxtra::Error.protect self do
         set_working_dir!
@@ -136,8 +151,6 @@ module Nginxtra
     def set_working_dir!
       if options["workingdir"]
         Dir.chdir options["workingdir"]
-      elsif Nginxtra::Status[:remembered_workingdir]
-        Dir.chdir Nginxtra::Status[:remembered_workingdir]
       end
     end
 
