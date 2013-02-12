@@ -4,7 +4,6 @@ describe Nginxtra::Actions::Start do
   let(:thor_mock) { Object.new }
   let(:config_mock) { Object.new }
   let(:compile_mock) { Object.new }
-  let(:install_mock) { Object.new }
   let(:base_dir) { File.absolute_path File.expand_path("~/.nginxtra") }
   let(:nginx_conf_dir) { File.join(base_dir, "conf") }
   let(:executable) { File.join(base_dir, "nginx-#{Nginxtra::Config.nginx_version}/build/sbin/nginx") }
@@ -12,9 +11,7 @@ describe Nginxtra::Actions::Start do
 
   it "compiles then starts nginx" do
     Nginxtra::Actions::Compile.should_receive(:new).with(thor_mock, config_mock).and_return(compile_mock)
-    Nginxtra::Actions::Install.should_receive(:new).with(thor_mock, config_mock).and_return(install_mock)
     compile_mock.should_receive(:compile)
-    install_mock.should_receive(:optional_install)
     config_mock.should_receive(:files).and_return(["nginx.conf", "mime_types.conf"])
     config_mock.should_receive(:file_contents).with("nginx.conf").at_least(:once).and_return("The nginx contents")
     config_mock.should_receive(:file_contents).with("mime_types.conf").at_least(:once).and_return("The mime_types contents")
@@ -32,9 +29,7 @@ describe Nginxtra::Actions::Start do
 
   it "throws an exception if nginx.conf is not specified" do
     Nginxtra::Actions::Compile.should_receive(:new).with(thor_mock, config_mock).and_return(compile_mock)
-    Nginxtra::Actions::Install.should_receive(:new).with(thor_mock, config_mock).and_return(install_mock)
     compile_mock.should_receive(:compile)
-    install_mock.should_receive(:optional_install)
     config_mock.should_receive(:files).and_return(["mime_types.conf"])
     thor_mock.stub(:options).and_return({})
     Nginxtra::Config.should_receive(:nginx_running?).and_return(false)

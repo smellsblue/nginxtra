@@ -278,7 +278,6 @@ http {
 
   describe "require!" do
     it "should require the config and then return the last config" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       config = nil
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
@@ -290,13 +289,11 @@ http {
     end
 
     it "raises an error if the config file cannot be found" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return(nil)
       lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
     end
 
     it "raises an error if the config file doesn't specify any configuration" do
-      Nginxtra::Status.stub(:[]).with(:remembered_config).and_return(nil)
       Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
       Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
         nil

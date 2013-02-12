@@ -6,23 +6,11 @@ module Nginxtra
     class Install
       include Nginxtra::Action
 
-      # Run the installation of nginxtra, but only after first
-      # prompting if the user wants the install.  This will do nothing
-      # if run with --non-interactive mode.
-      def optional_install
-        return installation_skipped if non_interactive?
-        return up_to_date unless should_install?
-        return unless requesting_install?
-        install
-      end
-
       # Run the installation of nginxtra.
       def install
         return up_to_date unless should_install?
         check_if_nginx_is_installed
         create_etc_script
-        remember_config_location
-        remember_working_directory
         update_last_install
       end
 
@@ -76,38 +64,12 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
         @thor.say "nginxtra installation is up to date"
       end
 
-      # Notify to the user that installation is being skipped.
-      def installation_skipped
-        @thor.say "skipping nginxtra installation"
-      end
-
-      # Remember the last config location, and use it unless the
-      # config is explicitly passed in.
-      def remember_config_location
-        # Absolute path somehow turns the path to a binary string when
-        # output to Yaml... so make it a string so it stays ascii
-        # readable.
-        Nginxtra::Status[:remembered_config] = Nginxtra::Config.loaded_config_path.to_s
-      end
-
-      # Remember the last working directory, and use it unless the
-      # working direcotry is explicitly passed in.
-      def remember_working_directory
-        Nginxtra::Status[:remembered_workingdir] = File.expand_path "."
-      end
-
       # Mark the last installed version and last installed time (the
       # former being used to determine if nginxtra has been installed
       # yet).
       def update_last_install
         Nginxtra::Status[:last_install_version] = Nginxtra::Config.version
         Nginxtra::Status[:last_install_time] = Time.now
-      end
-
-      # Ask the user if they wish to install.  Return whether the user
-      # requests the install.
-      def requesting_install?
-        @thor.yes? "Would you like to install nginxtra?"
       end
 
       # Determine if the install should proceed.  This will be true if

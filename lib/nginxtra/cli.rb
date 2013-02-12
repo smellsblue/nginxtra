@@ -136,8 +136,6 @@ module Nginxtra
     def set_working_dir!
       if options["workingdir"]
         Dir.chdir options["workingdir"]
-      elsif Nginxtra::Status[:remembered_workingdir]
-        Dir.chdir Nginxtra::Status[:remembered_workingdir]
       end
     end
 

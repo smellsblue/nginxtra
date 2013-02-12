@@ -191,8 +191,6 @@ module Nginxtra
       def require!(config_path = nil)
         if config_path
           config_path = File.absolute_path config_path
-        elsif Nginxtra::Status[:remembered_config]
-          config_path = File.absolute_path Nginxtra::Status[:remembered_config]
         else
           config_path = path
         end
