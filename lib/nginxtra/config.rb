@@ -433,6 +433,37 @@ module Nginxtra
         @end_of_block = true
       end
 
+      # Convenience method to use the "break" keyword, as seen in if
+      # blocks of nginx configurations.
+      def _break(*args, &block)
+        process_config_block_or_line "break", args, block
+      end
+
+      # Convenience method to invoke an if block in the nginx
+      # configuration.  Parenthesis are added around the arguments of
+      # this method.
+      #
+      # Example usage:
+      #   nginxtra.config do
+      #     _if "some", "~", "thing" do
+      #       _return 404
+      #     end
+      #   end
+      #
+      # Which will produce the following config:
+      #   if (some ~ thing) {
+      #     return 404;
+      #   }
+      def _if(*args, &block)
+        config_block "if (#{args.join " "})", &block
+      end
+
+      # Convenience method to use the "return" keyword, as seen in if
+      # blocks of nginx configurations.
+      def _return(*args, &block)
+        process_config_block_or_line "return", args, block
+      end
+
       # Process the given template.  Optionally, include options (as
       # yielded values) available to the template.  The yielder passed
       # in will be invoked (if given) if the template invokes yield.

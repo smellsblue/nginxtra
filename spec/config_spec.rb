@@ -124,6 +124,30 @@ worker_processes 42;
 "
     end
 
+    it "allows if, break and return" do
+      config = nginxtra.config do
+        file "nginx.conf" do
+          _if "example_1" do
+            _return "something"
+          end
+
+          _if "example_2" do
+            _break "something_else"
+          end
+        end
+      end
+
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "if (example_1) {
+    return something;
+}
+
+if (example_2) {
+    break something_else;
+}
+"
+    end
+
     it "allows line definitions without semicolon" do
       config = nginxtra.config do
         file "nginx.conf" do

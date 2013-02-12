@@ -114,6 +114,7 @@ module Nginxtra
     end
 
     class Token
+      KEYWORDS = ["break", "if", "return"].freeze
       TERMINAL_CHARACTERS = ["{", "}", ";"].freeze
       attr_reader :value
 
@@ -121,6 +122,18 @@ module Nginxtra
         @instance = true if value
         @value = value || ""
         @ready = false
+      end
+
+      def is_if?
+        @value == "if"
+      end
+
+      def if_start!
+        @value.gsub! /^\(/, ""
+      end
+
+      def if_end!
+        @value.gsub! /\)$/, ""
       end
 
       def terminal_character?
@@ -156,11 +169,19 @@ module Nginxtra
         @instance || @ready || terminal_character?
       end
 
+      def to_line_start
+        if KEYWORDS.include? @value
+          "_#{@value}"
+        else
+          @value
+        end
+      end
+
       def to_s
         if @value =~ /^\d+$/
           @value
         else
-          %{"#{@value}"}
+          %{"#{@value.gsub("\\") { "\\\\" }}"}
         end
       end
 
@@ -224,6 +245,10 @@ module Nginxtra
       end
 
       private
+      def is_if?
+        @tokens.first.is_if?
+      end
+
       def passenger?
         ["passenger_root", "passenger_ruby", "passenger_enabled"].include? @tokens.first.value
       end
@@ -272,13 +297,19 @@ module Nginxtra
       end
 
       def print_first
-        @output.print @tokens.first.value
+        @output.print @tokens.first.to_line_start
       end
 
       def print_args
         args = @tokens[1..-2]
         return if args.empty?
         @output.print " "
+
+        if is_if?
+          args.first.if_start!
+          args.last.if_end!
+        end
+
         @output.print args.map(&:to_s).join(", ")
       end
 
