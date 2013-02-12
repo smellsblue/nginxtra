@@ -130,7 +130,7 @@ Gem::Specification.new do |s|
   s.require_path   = "lib"
   s.bindir         = "bin"
   s.executables    = ["nginxtra", "nginxtra_rails"]
-  s.homepage       = "http://reasonnumber.com/nginxtra"
+  s.homepage       = "https://github.com/mikestone/nginxtra"
   s.add_dependency "thor", "#{Nginxtra::Gem.dependencies[:thor]}"
 end
 }
