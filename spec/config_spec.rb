@@ -321,6 +321,7 @@ http {
         Object.new.tap { |o| o.stub(:gem_dir).and_return("PASSENGER_ROOT") }
       end
       Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
+      Nginxtra::Config::Extension.clear_partials!
     end
 
     it "allows very simple static site configuration" do
@@ -508,6 +509,62 @@ http {
     }
 
     and_a_regular_option 42;
+}
+"
+    end
+
+    it "allows extensions to define partials" do
+      Nginxtra::Config::Extension.partial "nginx.conf", "other" do |args, block|
+        some "custom" do
+          partials "defined_here"
+          with_some(args[:extra] || "something")
+          block.call
+        end
+      end
+
+      config = nginxtra.simple_config do
+        other :extra => "syrup"
+
+        other do
+          other :extra => "foo" do
+            other :extra => "bar"
+          end
+        end
+      end
+
+      config.files.should == ["nginx.conf"]
+      config.file_contents("nginx.conf").should == "worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+    gzip on;
+
+    some custom {
+        partials defined_here;
+        with_some syrup;
+    }
+
+    some custom {
+        partials defined_here;
+        with_some something;
+
+        some custom {
+            partials defined_here;
+            with_some foo;
+
+            some custom {
+                partials defined_here;
+                with_some bar;
+            }
+        }
+    }
 }
 "
     end

@@ -308,6 +308,56 @@ module Nginxtra
       end
     end
 
+    # Extension point for other gems or libraries that want to define
+    # inline partials.  Please see the partial method for usage.
+    class Extension
+      class << self
+        # Determine if there has been a partial defined for the given
+        # nginx config file, with the given partial name.
+        def partial?(file, name)
+          file = file.to_sym
+          name = name.to_sym
+          @extensions && @extensions[file] && @extensions[file][name]
+        end
+
+        # Define or retrieve the partial for the given nginx config
+        # file and partial name.  If a block is provided, it is set as
+        # the partial, otherwise the partial currently defined for it
+        # will be retrieved.  The block is expected to take 2
+        # arguments... the arguments hash, and then the block passed
+        # in to this definition.  Either may be ignored if so desired.
+        #
+        # Example usage:
+        #   Nginxtra::Config::Extension.partial "nginx.conf", "my_app" do |args, block|
+        #     my_app(args[:port] || 80)
+        #     some_other_setting "on"
+        #     block.call
+        #   end
+        #
+        # The partial will only be valid for the given config file.
+        # It is completely nestable, and other partials may be invoked
+        # as well.
+        def partial(file, name, &block)
+          file = file.to_sym
+          name = name.to_sym
+          @extensions ||= {}
+          @extensions[file] ||= {}
+
+          if block
+            @extensions[file][name] = block
+          else
+            @extensions[file][name]
+          end
+        end
+
+        # Clear all partials so far defined.  This is mainly for test,
+        # but could be called if resetting is so desired.
+        def clear_partials!
+          @extensions = {}
+        end
+      end
+    end
+
     # Represents a config file being defined by nginxtra.conf.rb.
     class ConfigFile
       def initialize(filename, config, &block)
@@ -387,11 +437,16 @@ module Nginxtra
       # yielded values) available to the template.  The yielder passed
       # in will be invoked (if given) if the template invokes yield.
       def process_template!(template, options = {}, yielder = nil)
-        process_template_with_yields! template do |x|
-          if x
-            options[x.to_sym]
-          else
-            instance_eval &yielder if yielder
+        if template.respond_to? :call
+          block = Proc.new { instance_eval &yielder if yielder }
+          instance_exec options, block, &template
+        else
+          process_template_with_yields! template do |x|
+            if x
+              options[x.to_sym]
+            else
+              instance_eval &yielder if yielder
+            end
           end
         end
       end
@@ -442,16 +497,22 @@ module Nginxtra
 
       private
       def partial?(partial_name)
+        return true if Nginxtra::Config::Extension.partial? @filename, partial_name
+
         @config.partial_paths.any? do |path|
           File.exists? File.join(path, "#{@filename}/#{partial_name}.rb")
         end
       end
 
       def invoke_partial(partial_name, args, block)
-        partial_path = @config.partial_paths.map do |path|
-          File.join path, "#{@filename}/#{partial_name}.rb"
-        end.find do |path|
-          File.exists? path
+        if Nginxtra::Config::Extension.partial? @filename, partial_name
+          partial_path = Nginxtra::Config::Extension.partial @filename, partial_name
+        else
+          partial_path = @config.partial_paths.map do |path|
+            File.join path, "#{@filename}/#{partial_name}.rb"
+          end.find do |path|
+            File.exists? path
+          end
         end
 
         if args.empty?
