@@ -168,6 +168,11 @@ module Nginxtra
       # returned.
       def path
         path = File.absolute_path "."
+        config = File.join path, FILENAME
+        return config if File.exists? config
+        config = File.join path, "config", FILENAME
+        return config if File.exists? config
+        path = File.dirname path
 
         begin
           config = File.join path, FILENAME

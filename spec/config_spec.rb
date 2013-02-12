@@ -260,14 +260,22 @@ http {
       Nginxtra::Config.path.should == "/home/example/some/path/nginxtra.conf.rb"
     end
 
+    it "finds the config file if it is in the current directory's config directory" do
+      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
+      Nginxtra::Config.path.should == "/home/example/some/path/config/nginxtra.conf.rb"
+    end
+
     it "finds the config file if it is in the first parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
       Nginxtra::Config.path.should == "/home/example/some/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the second parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(true)
       Nginxtra::Config.path.should == "/home/example/nginxtra.conf.rb"
@@ -275,6 +283,7 @@ http {
 
     it "finds the config file if it is in the third parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(true)
@@ -283,6 +292,7 @@ http {
 
     it "finds the config file if it is in the fourth parent" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
@@ -292,6 +302,7 @@ http {
 
     it "returns nil if no config file is found" do
       File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
       File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
