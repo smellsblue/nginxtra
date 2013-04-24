@@ -13,5 +13,5 @@ Gem::Specification.new do |s|
   s.bindir         = "bin"
   s.executables    = ["nginxtra", "nginxtra_rails"]
   s.homepage       = "https://github.com/mikestone/nginxtra"
-  s.add_dependency "thor", "~> 0.16.0"
+  s.add_dependency "thor", "~> 0.16"
 end
