@@ -10,7 +10,7 @@ module Nginxtra
   class Gem
     class << self
       def dependencies
-        { :thor => "~> 0.16.0" }
+        { :thor => "~> 0.16" }
       end
 
       def to_s
