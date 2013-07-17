@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require "rubygems"
-gem "nginxtra", "= 1.4.1.9"
+gem "nginxtra", "= 1.4.2.9"
 gem "thor", "~> 0.16"
 require "nginxtra"
 Nginxtra::Rails::CLI.start
