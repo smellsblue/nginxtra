@@ -6,7 +6,7 @@ module Nginxtra
       end
 
       def to_s
-        "1.4.5.9"
+        "1.4.6.9"
       end
     end
   end
