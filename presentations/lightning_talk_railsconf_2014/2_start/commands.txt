@@ -1,0 +1,5 @@
+nginxtra start
+nginxtra status
+nginxtra restart
+nginxtra stop
+nginxtra print

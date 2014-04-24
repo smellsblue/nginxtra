@@ -1,0 +1,44 @@
+SLIDE
+* Hope you are all having a great RailsConf!
+
+SLIDE
+* I have been having a great time, perhaps stayed up a little too late gaming
+  So I probably didn't prepare as much as I should have
+  So feel free to check twitter right now
+
+SLIDE
+* What is nginxtra and why should I use it?
+
+SLIDE
+* Let's look at github...
+
+SLIDE
+* Shoot....
+
+SLIDE
+* Sorry Farrah!  I'll try to fix this soon...
+
+SLIDE
+* Ok, well, good thing I wrote the code, so I can describe it for you now.
+  But first... what is nginx?
+  It is an efficient web server that compiles all modules in
+  rather than link them in, like Apache does
+
+SLIDE /ruby versions match to nginx versions
+* nginxtra is a gem that wraps the source code of nginx
+  So you can keep nginx up to date
+
+SLIDE /but wait there's more!
+* But it's more.
+
+SLIDE
+* You get a Ruby DSL to configure nginx
+
+SLIDE
+* The configuration can indicate what compilation options to enable nginx
+
+SLIDE
+* You can break out code into logical partials
+
+SLIDE
+* You can install, start, stop and view the status of nginx
