@@ -15,7 +15,7 @@ nginxtra.config do
         server_name "localhost"
 
         location "/" do
-          root File.expand_path(__FILE__, "..")
+          root File.expand_path("..", __FILE__)
           index "index.html", "index.htm"
         end
       end
