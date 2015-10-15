@@ -108,7 +108,7 @@ module Nginxtra
     def require_passenger!
       compile_option %{--with-http_gzip_static_module}
       compile_option %{--with-cc-opt=-Wno-error}
-      compile_option %{--add-module="#{File.join Nginxtra::Config.passenger_spec.gem_dir, "ext/nginx"}"}
+      compile_option %{--add-module="#{Nginxtra::Config.passenger_config_dir}"}
     end
 
     # Obtain the compile options that have been configured.
@@ -300,6 +300,10 @@ module Nginxtra
         @passenger_spec ||= Gem::Specification.find_by_name("passenger").tap do |spec|
           raise InvalidConfig.new("Missing passenger gem", :header => "Missing passenger gem!", :message => "You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
         end
+      end
+
+      def passenger_config_dir
+        @passenger_config_dir ||= `#{File.join passenger_spec.bin_dir, "passenger-config"} --nginx-addon-dir`.strip
       end
 
       # Determine if nginx is running, based on the pidfile.
