@@ -7,24 +7,24 @@ describe Nginxtra::Config do
       alias_method :orig_read, :read
     end
 
-    File.stub(:exists?) do |path|
+    allow(File).to receive(:exists?) do |path|
       next true if files.include? path
       File.orig_exists? path
     end
 
-    File.stub(:read) do |path|
+    allow(File).to receive(:read) do |path|
       next files[path] if files.include? path
       File.orig_read path
     end
   end
 
   it "remembers the last config created" do
-    Nginxtra::Config.last_config.should == nil
+    expect(Nginxtra::Config.last_config).to eq nil
     config1 = nginxtra
-    Nginxtra::Config.last_config.should == config1
+    expect(Nginxtra::Config.last_config).to eq config1
     config2 = nginxtra
-    Nginxtra::Config.last_config.should_not == config1
-    Nginxtra::Config.last_config.should == config2
+    expect(Nginxtra::Config.last_config).to_not eq config1
+    expect(Nginxtra::Config.last_config).to eq config2
   end
 
   describe "compile options" do
@@ -32,7 +32,7 @@ describe Nginxtra::Config do
       config = nginxtra.config do
       end
 
-      config.compile_options.should == ""
+      expect(config.compile_options).to eq ""
     end
 
     it "supports options to be defined without --" do
@@ -40,7 +40,7 @@ describe Nginxtra::Config do
         compile_option "without-http_gzip_module"
       end
 
-      config.compile_options.should == "--without-http_gzip_module"
+      expect(config.compile_options).to eq "--without-http_gzip_module"
     end
 
     it "supports options to be defined with --" do
@@ -48,7 +48,7 @@ describe Nginxtra::Config do
         compile_option "--without-http_gzip_module"
       end
 
-      config.compile_options.should == "--without-http_gzip_module"
+      expect(config.compile_options).to eq "--without-http_gzip_module"
     end
 
     it "allows multiple options, and preserves the order" do
@@ -58,37 +58,37 @@ describe Nginxtra::Config do
         compile_option "--with-select_module"
       end
 
-      config.compile_options.should == "--without-http_gzip_module --with-pcre-jit --with-select_module"
+      expect(config.compile_options).to eq "--without-http_gzip_module --with-pcre-jit --with-select_module"
     end
 
     it "prevents the use of --prefix option" do
       config = nginxtra
-      lambda { config.compile_option "--prefix=/usr/share/nginx" }.should raise_error(Nginxtra::Error::InvalidConfig)
-      config.compile_options.should == ""
+      expect { config.compile_option "--prefix=/usr/share/nginx" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of --prefix option embedded with other options" do
       config = nginxtra
-      lambda { config.compile_option "--someoption --prefix=/usr/share/nginx --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
-      config.compile_options.should == ""
+      expect { config.compile_option "--someoption --prefix=/usr/share/nginx --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --sbin-path option" do
       config = nginxtra
-      lambda { config.compile_option "--someoption --sbin-path=something --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
-      config.compile_options.should == ""
+      expect { config.compile_option "--someoption --sbin-path=something --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --conf-path option" do
       config = nginxtra
-      lambda { config.compile_option "--someoption --conf-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
-      config.compile_options.should == ""
+      expect { config.compile_option "--someoption --conf-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --pid-path option" do
       config = nginxtra
-      lambda { config.compile_option "--someoption --pid-path=conf --someotheroption" }.should raise_error(Nginxtra::Error::InvalidConfig)
-      config.compile_options.should == ""
+      expect { config.compile_option "--someoption --pid-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect(config.compile_options).to eq ""
     end
   end
 
@@ -97,7 +97,7 @@ describe Nginxtra::Config do
       config = nginxtra.config do
       end
 
-      config.files.should == []
+      expect(config.files).to eq []
     end
 
     it "supports empty definition" do
@@ -106,8 +106,8 @@ describe Nginxtra::Config do
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == ""
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq ""
     end
 
     it "allows simple line definitions" do
@@ -118,8 +118,8 @@ describe Nginxtra::Config do
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "user my_user;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "user my_user;
 worker_processes 42;
 "
     end
@@ -137,8 +137,8 @@ worker_processes 42;
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "if (example_1) {
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "if (example_1) {
     return something;
 }
 
@@ -156,8 +156,8 @@ if (example_2) {
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "user my_user
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "user my_user
 worker_processes 42
 "
     end
@@ -171,8 +171,8 @@ worker_processes 42
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "events {
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "events {
     worker_connections 4242;
 }
 "
@@ -185,8 +185,8 @@ worker_processes 42
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "events {
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "events {
 }
 "
     end
@@ -213,8 +213,8 @@ worker_processes 42
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "user my_user;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "user my_user;
 worker_processes 42;
 
 events {
@@ -244,122 +244,122 @@ http {
         end
       end
 
-      config.files.should =~ ["other.conf", "nginx.conf"]
-      config.file_contents("nginx.conf").should == "nginx_contents;
+      expect(config.files).to match_array ["other.conf", "nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "nginx_contents;
 "
-      config.file_contents("other.conf").should == "other_contents;
+      expect(config.file_contents("other.conf")).to eq "other_contents;
 "
     end
   end
 
   describe "path" do
-    before { File.should_receive(:absolute_path).with(".").and_return("/home/example/some/path") }
+    before { expect(File).to receive(:absolute_path).with(".").and_return("/home/example/some/path") }
 
     it "finds the config file if it is in the current directory" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/home/example/some/path/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/home/example/some/path/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the current directory's config directory" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/home/example/some/path/config/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/home/example/some/path/config/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the first parent" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/home/example/some/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/home/example/some/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the second parent" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/home/example/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/home/example/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the third parent" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/home/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/home/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the fourth parent" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/nginxtra.conf.rb").and_return(true)
-      Nginxtra::Config.path.should == "/nginxtra.conf.rb"
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/nginxtra.conf.rb").and_return(true)
+      expect(Nginxtra::Config.path).to eq "/nginxtra.conf.rb"
     end
 
     it "returns nil if no config file is found" do
-      File.should_receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
-      File.should_receive(:exists?).with("/nginxtra.conf.rb").and_return(false)
-      Nginxtra::Config.path.should == nil
+      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exists?).with("/nginxtra.conf.rb").and_return(false)
+      expect(Nginxtra::Config.path).to be_nil
     end
   end
 
   describe "require!" do
     it "should require the config and then return the last config" do
       config = nil
-      Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
-      Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
+      expect(Nginxtra::Config).to receive(:path).and_return("/a/fake/path")
+      expect(Nginxtra::Config).to receive(:require).with("/a/fake/path") do
         config = nginxtra
         nil
       end
-      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
-      Nginxtra::Config.require!.should == config
+      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect(Nginxtra::Config.require!).to eq config
     end
 
     it "raises an error if the config file cannot be found" do
-      Nginxtra::Config.should_receive(:path).and_return(nil)
-      lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::MissingConfig)
+      expect(Nginxtra::Config).to receive(:path).and_return(nil)
+      expect { Nginxtra::Config.require! }.to raise_error(Nginxtra::Error::MissingConfig)
     end
 
     it "raises an error if the config file doesn't specify any configuration" do
-      Nginxtra::Config.should_receive(:path).and_return("/a/fake/path")
-      Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
+      expect(Nginxtra::Config).to receive(:path).and_return("/a/fake/path")
+      expect(Nginxtra::Config).to receive(:require).with("/a/fake/path") do
         nil
       end
-      Nginxtra::Config.should_receive(:last_config).and_return(nil)
-      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
-      lambda { Nginxtra::Config.require! }.should raise_error(Nginxtra::Error::InvalidConfig)
+      expect(Nginxtra::Config).to receive(:last_config).and_return(nil)
+      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect { Nginxtra::Config.require! }.to raise_error(Nginxtra::Error::InvalidConfig)
     end
 
     it "allows specifying a specific configuration file" do
       config = nil
-      Nginxtra::Config.should_not_receive(:path)
-      Nginxtra::Config.should_receive(:require).with("/a/fake/path") do
+      expect(Nginxtra::Config).to_not receive(:path)
+      expect(Nginxtra::Config).to receive(:require).with("/a/fake/path") do
         config = nginxtra
         nil
       end
-      File.should_receive(:exists?).with("/a/fake/path").and_return(true)
-      Nginxtra::Config.require!("/a/fake/path").should == config
+      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect(Nginxtra::Config.require!("/a/fake/path")).to eq config
     end
   end
 
   describe "auto config capabilities" do
     before do
-      Nginxtra::Config.stub(:passenger_spec) do
+      allow(Nginxtra::Config).to receive(:passenger_spec) do
         Object.new.tap do |o|
-          o.stub(:gem_dir).and_return("PASSENGER_ROOT")
-          o.stub(:bin_dir).and_return("PASSENGER_ROOT/bin")
+          allow(o).to receive(:gem_dir).and_return("PASSENGER_ROOT")
+          allow(o).to receive(:bin_dir).and_return("PASSENGER_ROOT/bin")
         end
       end
-      Nginxtra::Config.stub(:passenger_config_dir).and_return("PASSENGER_ROOT/ext/nginx")
-      Nginxtra::Config.stub(:ruby_path).and_return("PASSENGER_RUBY")
+      allow(Nginxtra::Config).to receive(:passenger_config_dir).and_return("PASSENGER_ROOT/ext/nginx")
+      allow(Nginxtra::Config).to receive(:ruby_path).and_return("PASSENGER_RUBY")
       Nginxtra::Config::Extension.clear_partials!
     end
 
@@ -368,9 +368,9 @@ http {
         static
       end
 
-      config.compile_options.should == "--with-http_gzip_static_module"
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.compile_options).to eq "--with-http_gzip_static_module"
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -398,9 +398,9 @@ http {
         static
       end
 
-      config.compile_options.should == "--with-http_gzip_static_module"
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "user run_as_user;
+      expect(config.compile_options).to eq "--with-http_gzip_static_module"
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "user run_as_user;
 worker_processes 1;
 
 events {
@@ -429,9 +429,9 @@ http {
         static
       end
 
-      config.compile_options.should == "--with-http_gzip_static_module"
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.compile_options).to eq "--with-http_gzip_static_module"
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 env EXAMPLE=abc;
 env OTHER_EXAMPLE=123;
 
@@ -461,9 +461,9 @@ http {
         rails
       end
 
-      config.compile_options.should == %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.compile_options).to eq %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -496,9 +496,9 @@ http {
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end
 
-      config.compile_options.should == %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.compile_options).to eq %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -549,9 +549,9 @@ http {
         and_a_regular_option 42
       end
 
-      config.compile_options.should == "--with-http_gzip_static_module"
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.compile_options).to eq "--with-http_gzip_static_module"
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -603,8 +603,8 @@ http {
         end
       end
 
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -661,8 +661,8 @@ end
         other :extra => "butter"
         other :extra => "syrup"
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -715,8 +715,8 @@ end
         other :extra => "butter"
         other :extra => "syrup"
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -765,8 +765,8 @@ end
 
         other :extra => "syrup"
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -815,8 +815,8 @@ end
           with_more "yielded content"
         end
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "worker_processes 1;
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
 events {
     worker_connections 1024;
@@ -862,23 +862,23 @@ http {
         alias_method :orig_file?, :file?
       end
 
-      Dir.should_receive(:[]).with("#{Nginxtra::Config.template_dir}/files/**/*.rb").and_return([nginx_path])
-      Dir.stub(:[]) { |blob| Dir.orig_bracket blob }
-      File.should_receive(:file?).with(nginx_path).and_return(true)
-      File.stub(:file?) { |name| File.orig_file? name }
-      File.should_receive(:read).with(nginx_path).and_return("
+      expect(Dir).to receive(:[]).with("#{Nginxtra::Config.template_dir}/files/**/*.rb").and_return([nginx_path])
+      allow(Dir).to receive(:[]) { |blob| Dir.orig_bracket blob }
+      expect(File).to receive(:file?).with(nginx_path).and_return(true)
+      allow(File).to receive(:file?) { |name| File.orig_file? name }
+      expect(File).to receive(:read).with(nginx_path).and_return("
 the_nginx_conf do
   has_been :changed
   yield
 end
 ")
-      File.stub(:read) { |path| File.orig_read path }
+      allow(File).to receive(:read) { |path| File.orig_read path }
       config = nginxtra.simple_config do
         rails
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "the_nginx_conf {
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "the_nginx_conf {
     has_been changed;
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;
@@ -916,25 +916,25 @@ end
         alias_method :orig_file?, :file?
       end
 
-      Dir.should_receive(:[]).with("/my_custom_files/**/*.rb").and_return([nginx_path])
-      Dir.stub(:[]) { |blob| Dir.orig_bracket blob }
-      File.should_receive(:file?).with(nginx_path).and_return(true)
-      File.stub(:file?) { |name| File.orig_file? name }
-      File.should_receive(:read).with(nginx_path).and_return("
+      expect(Dir).to receive(:[]).with("/my_custom_files/**/*.rb").and_return([nginx_path])
+      allow(Dir).to receive(:[]) { |blob| Dir.orig_bracket blob }
+      expect(File).to receive(:file?).with(nginx_path).and_return(true)
+      allow(File).to receive(:file?) { |name| File.orig_file? name }
+      expect(File).to receive(:read).with(nginx_path).and_return("
 the_nginx_conf do
   has_been :changed
   yield
 end
 ")
-      File.stub(:read) { |path| File.orig_read path }
+      allow(File).to receive(:read) { |path| File.orig_read path }
       config = nginxtra do |n|
         n.custom_files "/my_custom_files"
       end.simple_config do
         rails
         rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
       end
-      config.files.should == ["nginx.conf"]
-      config.file_contents("nginx.conf").should == "the_nginx_conf {
+      expect(config.files).to eq ["nginx.conf"]
+      expect(config.file_contents("nginx.conf")).to eq "the_nginx_conf {
     has_been changed;
     passenger_root PASSENGER_ROOT;
     passenger_ruby PASSENGER_RUBY;

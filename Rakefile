@@ -1,3 +1,5 @@
+require "rubocop/rake_task"
+require "rspec/core/rake_task"
 require File.expand_path("../lib/nginxtra/version.rb", __FILE__)
 
 def system_exec(cmd)
@@ -125,14 +127,17 @@ Gem::Specification.new do |s|
   s.summary        = "Wrapper of nginx for easy install and use."
   s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be used to compile nginx and configure the configuration."
   s.author         = "Mike Virata-Stone"
-  s.email          = "reasonnumber@gmail.com"
+  s.email          = "mike@virata-stone.com"
   s.license        = "nginx"
   s.files          = FileList["bin/**/*", "lib/**/*", "templates/**/*", "vendor/**/*"]
   s.require_path   = "lib"
   s.bindir         = "bin"
   s.executables    = ["nginxtra", "nginxtra_rails"]
-  s.homepage       = "https://github.com/mikestone/nginxtra"
-  s.add_dependency "thor", "#{Nginxtra::Gem.dependencies[:thor]}"
+  s.homepage       = "https://github.com/smellsblue/nginxtra"
+  s.add_runtime_dependency "thor", "#{Nginxtra::Gem.dependencies[:thor]}"
+  s.add_development_dependency "rake", "~> 10.0"
+  s.add_development_dependency "rspec", "~> 3.3"
+  s.add_development_dependency "rubocop", "~> 0.38.0"
 end
 }
 
@@ -173,4 +178,11 @@ end
 task :push => :build do
   puts "Pushing nginxtra"
   system_exec "gem push #{Nginxtra::Gem}"
+end
+
+RuboCop::RakeTask.new
+
+desc "Run specs"
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.rspec_opts = %w(--color)
 end

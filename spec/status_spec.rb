@@ -6,57 +6,57 @@ describe Nginxtra::Status do
   before { Nginxtra::Status.class_variable_set :@@status, nil }
 
   describe "with no file to load" do
-    before { File.should_receive(:exists?).with(status_file).and_return(false) }
+    before { expect(File).to receive(:exists?).with(status_file).and_return(false) }
 
     it "defaults options to nil" do
-      Nginxtra::Status[:last_compile_options].should == nil
-      Nginxtra::Status[:random_other_value].should == nil
+      expect(Nginxtra::Status[:last_compile_options]).to be_nil
+      expect(Nginxtra::Status[:random_other_value]).to be_nil
     end
 
     it "saves out to a file when options are stored" do
-      YAML.should_receive(:dump).with({ :last_compile_options => "--some-option" }).and_return("The YAML dumped content")
+      expect(YAML).to receive(:dump).with({ :last_compile_options => "--some-option" }).and_return("The YAML dumped content")
       fake_file = Object.new
-      fake_file.should_receive(:<<).with("The YAML dumped content")
-      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
+      expect(fake_file).to receive(:<<).with("The YAML dumped content")
+      expect(File).to receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:last_compile_options] = "--some-option"
-      Nginxtra::Status[:last_compile_options].should == "--some-option"
+      expect(Nginxtra::Status[:last_compile_options]).to eq "--some-option"
     end
   end
 
   describe "with a file to load" do
     before do
-      File.should_receive(:exists?).with(status_file).and_return(true)
-      File.should_receive(:read).with(status_file).and_return(YAML.dump({ :last_compile_options => "--original-option", :other_option => "something" }))
+      expect(File).to receive(:exists?).with(status_file).and_return(true)
+      expect(File).to receive(:read).with(status_file).and_return(YAML.dump({ :last_compile_options => "--original-option", :other_option => "something" }))
     end
 
     it "defaults missing options to nil" do
-      Nginxtra::Status[:missing_option].should == nil
+      expect(Nginxtra::Status[:missing_option]).to be_nil
     end
 
     it "returns values stored in the file" do
-      Nginxtra::Status[:last_compile_options].should == "--original-option"
-      Nginxtra::Status[:other_option].should == "something"
+      expect(Nginxtra::Status[:last_compile_options]).to eq "--original-option"
+      expect(Nginxtra::Status[:other_option]).to eq "something"
     end
 
     it "saves out to a file when new options are stored" do
-      YAML.should_receive(:dump).with({ :last_compile_options => "--original-option", :other_option => "something", :new_option => "new value" }).and_return("The YAML dumped content")
+      expect(YAML).to receive(:dump).with({ :last_compile_options => "--original-option", :other_option => "something", :new_option => "new value" }).and_return("The YAML dumped content")
       fake_file = Object.new
-      fake_file.should_receive(:<<).with("The YAML dumped content")
-      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
+      expect(fake_file).to receive(:<<).with("The YAML dumped content")
+      expect(File).to receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:new_option] = "new value"
-      Nginxtra::Status[:new_option].should == "new value"
-      Nginxtra::Status[:last_compile_options].should == "--original-option"
-      Nginxtra::Status[:other_option].should == "something"
+      expect(Nginxtra::Status[:new_option]).to eq "new value"
+      expect(Nginxtra::Status[:last_compile_options]).to eq "--original-option"
+      expect(Nginxtra::Status[:other_option]).to eq "something"
     end
 
     it "saves out to a file when old options are updated" do
-      YAML.should_receive(:dump).with({ :last_compile_options => "--some-option", :other_option => "something" }).and_return("The YAML dumped content")
+      expect(YAML).to receive(:dump).with({ :last_compile_options => "--some-option", :other_option => "something" }).and_return("The YAML dumped content")
       fake_file = Object.new
-      fake_file.should_receive(:<<).with("The YAML dumped content")
-      File.should_receive(:open).with(status_file, "w").and_yield(fake_file)
+      expect(fake_file).to receive(:<<).with("The YAML dumped content")
+      expect(File).to receive(:open).with(status_file, "w").and_yield(fake_file)
       Nginxtra::Status[:last_compile_options] = "--some-option"
-      Nginxtra::Status[:last_compile_options].should == "--some-option"
-      Nginxtra::Status[:other_option].should == "something"
+      expect(Nginxtra::Status[:last_compile_options]).to eq "--some-option"
+      expect(Nginxtra::Status[:other_option]).to eq "something"
     end
   end
 end

@@ -11,62 +11,62 @@ describe Nginxtra::Actions::Compile do
   let(:config_file) { File.join base_dir, "conf/nginx.conf" }
 
   it "compiles based on the passed in config" do
-    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
-    thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
-    thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
-    thor_mock.should_receive(:run).with("make") { RunMock.success }
-    thor_mock.should_receive(:run).with("make install") { RunMock.success }
-    thor_mock.stub(:options).and_return({ "force" => false })
-    config_mock.stub(:compile_options).and_return("--option1 --option2")
-    Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return(nil)
-    Time.stub(:now).and_return(:fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
+    expect(thor_mock).to receive(:directory).with("vendor/nginx", src_dir)
+    expect(thor_mock).to receive(:inside).with(src_dir).and_yield.at_least(:once)
+    expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
+    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
+    expect(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return(nil)
+    allow(Time).to receive(:now).and_return(:fake_time)
+    allow(Nginxtra::Status).to receive(:[]=).with(:last_compile_options, "--option1 --option2")
+    allow(Nginxtra::Status).to receive(:[]=).with(:last_compile_time, :fake_time)
+    allow(Nginxtra::Status).to receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 
   it "compiles based on the passed in config when different options were previously compiled" do
-    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
-    thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
-    thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
-    thor_mock.should_receive(:run).with("make") { RunMock.success }
-    thor_mock.should_receive(:run).with("make install") { RunMock.success }
-    thor_mock.stub(:options).and_return({ "force" => false })
-    config_mock.stub(:compile_options).and_return("--option1 --option2")
-    Nginxtra::Status.should_receive(:[]).with(:last_compile_options).and_return("--other-options")
-    Time.stub(:now).and_return(:fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
+    expect(thor_mock).to receive(:directory).with("vendor/nginx", src_dir)
+    expect(thor_mock).to receive(:inside).with(src_dir).and_yield.at_least(:once)
+    expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
+    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
+    expect(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return("--other-options")
+    allow(Time).to receive(:now).and_return(:fake_time)
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_options, "--option1 --option2")
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_time, :fake_time)
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 
   it "doesn't compile if the last compiled status indicates it has already compiled with the same options" do
-    config_mock.should_receive(:compile_options).and_return("--option1 --option2")
-    Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
-    Nginxtra::Status.stub(:[]).with(:last_compile_version).and_return(Nginxtra::Config.nginx_version)
-    thor_mock.should_not_receive(:inside)
-    thor_mock.should_not_receive(:run) { RunMock.success }
-    thor_mock.stub(:options).and_return({ "force" => false })
-    thor_mock.should_receive(:say).with("nginx compilation is up to date")
-    Nginxtra::Status.should_not_receive(:[]=)
+    expect(config_mock).to receive(:compile_options).and_return("--option1 --option2")
+    allow(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return("--option1 --option2")
+    allow(Nginxtra::Status).to receive(:[]).with(:last_compile_version).and_return(Nginxtra::Config.nginx_version)
+    expect(thor_mock).to_not receive(:inside)
+    expect(thor_mock).to_not receive(:run) { RunMock.success }
+    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    expect(thor_mock).to receive(:say).with("nginx compilation is up to date")
+    expect(Nginxtra::Status).to_not receive(:[]=)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 
   it "recompiles if force is passed in" do
-    thor_mock.should_receive(:directory).with("vendor/nginx", src_dir)
-    thor_mock.should_receive(:inside).with(src_dir).and_yield.at_least(:once)
-    thor_mock.should_receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
-    thor_mock.should_receive(:run).with("make") { RunMock.success }
-    thor_mock.should_receive(:run).with("make install") { RunMock.success }
-    thor_mock.stub(:options).and_return({ "force" => true })
-    config_mock.stub(:compile_options).and_return("--option1 --option2")
-    Nginxtra::Status.stub(:[]).with(:last_compile_options).and_return("--option1 --option2")
-    Time.stub(:now).and_return(:fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_options, "--option1 --option2")
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_time, :fake_time)
-    Nginxtra::Status.should_receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
+    expect(thor_mock).to receive(:directory).with("vendor/nginx", src_dir)
+    expect(thor_mock).to receive(:inside).with(src_dir).and_yield.at_least(:once)
+    expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make") { RunMock.success }
+    expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
+    allow(thor_mock).to receive(:options).and_return({ "force" => true })
+    allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
+    allow(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return("--option1 --option2")
+    allow(Time).to receive(:now).and_return(:fake_time)
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_options, "--option1 --option2")
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_time, :fake_time)
+    expect(Nginxtra::Status).to receive(:[]=).with(:last_compile_version, Nginxtra::Config.nginx_version)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
   end
 end
