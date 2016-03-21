@@ -14,6 +14,7 @@ module Nginxtra
     end
 
     private
+
     def run!(command)
       @thor.run command
       raise Nginxtra::Error::RunFailed.new("The last run command failed") unless $?.success?

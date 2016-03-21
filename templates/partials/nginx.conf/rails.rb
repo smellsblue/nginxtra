@@ -1,10 +1,10 @@
 rails_server = yield(:server) || :passenger
 ssl_details = yield :ssl
 
-if ssl_details
-  default_port = 443
+default_port = if ssl_details
+  443
 else
-  default_port = 80
+  80
 end
 
 if rails_server == :passenger && !@passenger_requirements_done

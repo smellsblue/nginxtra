@@ -11,7 +11,7 @@ class RestartTestController < ApplicationController
     logger.info "Sleeping for #{sleep_time}s from stamp #{stamp}"
     sleep sleep_time
     logger.info "Done sleeping for #{sleep_time}s from stamp #{stamp}"
-    render :text => "Done"
+    render text: "Done"
   end
 
   def restart_nginxtra

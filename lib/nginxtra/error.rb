@@ -8,7 +8,7 @@ module Nginxtra
       end
 
       def output(thor)
-        options = @options || { :header => message }
+        options = @options || { header: message }
         Nginxtra::Error.print_error thor, options
       end
     end
@@ -42,15 +42,13 @@ module Nginxtra
       end
 
       def protect(thor)
-        begin
-          yield
-        rescue Nginxtra::Error::Base => e
-          e.output thor
-          raise if thor.options["trace"]
-        rescue => e
-          print_error thor, :header => "An unexpected error occurred!"
-          raise if thor.options["trace"]
-        end
+        yield
+      rescue Nginxtra::Error::Base => e
+        e.output thor
+        raise if thor.options["trace"]
+      rescue => e
+        print_error thor, header: "An unexpected error occurred!"
+        raise if thor.options["trace"]
       end
     end
   end

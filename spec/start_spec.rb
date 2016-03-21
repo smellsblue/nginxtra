@@ -16,8 +16,8 @@ describe Nginxtra::Actions::Start do
     expect(config_mock).to receive(:file_contents).with("nginx.conf").at_least(:once).and_return("The nginx contents")
     expect(config_mock).to receive(:file_contents).with("mime_types.conf").at_least(:once).and_return("The mime_types contents")
     allow(thor_mock).to receive(:inside).with(nginx_conf_dir).and_yield
-    expect(thor_mock).to receive(:create_file).with("nginx.conf", "The nginx contents", :force => true)
-    expect(thor_mock).to receive(:create_file).with("mime_types.conf", "The mime_types contents", :force => true)
+    expect(thor_mock).to receive(:create_file).with("nginx.conf", "The nginx contents", force: true)
+    expect(thor_mock).to receive(:create_file).with("mime_types.conf", "The mime_types contents", force: true)
     expect(config_mock).to receive(:require_root?).and_return(false)
     expect(thor_mock).to receive(:run).with("start-stop-daemon --start --quiet --pidfile #{pidfile} --exec #{executable}") { RunMock.success }
     allow(thor_mock).to receive(:options).and_return({})

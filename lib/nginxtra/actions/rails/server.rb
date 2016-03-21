@@ -35,10 +35,10 @@ module Nginxtra
           environment = @thor.options["environment"]
           @thor.empty_directory "tmp" unless File.directory? "tmp"
           @thor.empty_directory "tmp/nginxtra" unless File.directory? "tmp/nginxtra"
-          @thor.create_file config_path, %{nginxtra.simple_config do
+          @thor.create_file config_path, %(nginxtra.simple_config do
   rails :port => #{port}, :environment => "#{environment}"
 end
-}, :force => true
+), force: true
           @thor.invoke Nginxtra::CLI, ["start"], :basedir => basedir, :config => config_path, :workingdir => workingdir, :"non-interactive" => true
           @thor.say "Listening on http://localhost:#{port}/"
           @thor.say "Environment: #{environment}"
@@ -73,8 +73,8 @@ end
         end
 
         def in_rails_app?
-          return true if File.exists? "script/rails"
-          File.exists?("script/server") && File.exists?("app")
+          return true if File.exist? "script/rails"
+          File.exist?("script/server") && File.exist?("app")
         end
 
         def start_verbose_output
@@ -92,12 +92,12 @@ end
           environment = @thor.options["environment"]
           log_path = "log/#{environment}.log"
 
-          if File.exists? log_path
+          if File.exist? log_path
             log = File.open log_path, "r"
             log.seek 0, IO::SEEK_END
           else
             while @verbose_run
-              if File.exists? log_path
+              if File.exist? log_path
                 log = File.open log_path, "r"
                 break
               end
@@ -112,7 +112,7 @@ end
 
             if line
               puts line
-              puts line while(line = log.gets)
+              puts line while (line = log.gets)
             end
 
             sleep 0.1

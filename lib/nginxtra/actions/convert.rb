@@ -8,13 +8,14 @@ module Nginxtra
       def convert
         @streams_to_close = []
         converter = Nginxtra::ConfigConverter.new output
-        converter.convert :config => config, :binary_status => binary_status
+        converter.convert config: config, binary_status: binary_status
         save_if_necessary!
       ensure
         close_streams!
       end
 
       private
+
       def output
         if @thor.options["output"]
           STDOUT
@@ -43,24 +44,24 @@ module Nginxtra
       def binary_status
         return if @thor.options["ignore-nginx-bin"]
 
-        if @thor.options["nginx-bin"]
-          binary = @thor.options["nginx-bin"]
+        binary = if @thor.options["nginx-bin"]
+          @thor.options["nginx-bin"]
         else
-          binary = etc_nginx_binary
+          etc_nginx_binary
         end
 
-        @thor.run "#{binary} -V 2>&1", :capture => true
+        @thor.run "#{binary} -V 2>&1", capture: true
       end
 
       def etc_nginx_binary
-        raise Nginxtra::Error::ConvertFailed.new("Cannot find nginx binary", :header => "Cannot find nginx binary!", :message => "Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless File.exists? "/etc/init.d/nginx"
+        raise Nginxtra::Error::ConvertFailed.new("Cannot find nginx binary", header: "Cannot find nginx binary!", message: "Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless File.exist? "/etc/init.d/nginx"
         binary = File.read("/etc/init.d/nginx")[/\s*DAEMON\s*=\s*(.*?)\s*$/, 1]
-        raise Nginxtra::Error::ConvertFailed.new("Cannot determine nginx binary", :header => "Cannot find nginx binary!", :message => "The binary location of nginx cannot be determined from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless binary
+        raise Nginxtra::Error::ConvertFailed.new("Cannot determine nginx binary", header: "Cannot find nginx binary!", message: "The binary location of nginx cannot be determined from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin") unless binary
         binary
       end
 
       def open_file(path)
-        raise Nginxtra::Error::ConvertFailed.new("Missing config file #{path}") unless File.exists? path
+        raise Nginxtra::Error::ConvertFailed.new("Missing config file #{path}") unless File.exist? path
 
         File.open(path, "r").tap do |stream|
           @streams_to_close << stream

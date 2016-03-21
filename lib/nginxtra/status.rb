@@ -29,6 +29,7 @@ module Nginxtra
       end
 
       private
+
       # Load the status state, if it hasn't yet been loaded.  If there
       # is no file yet existing, then the state is simply initialized
       # to an empty hash (and it is NOT stored to the filesystem til
@@ -36,10 +37,10 @@ module Nginxtra
       def load!
         return if @@status
 
-        if File.exists? path
-          @@status = YAML.load File.read(path)
+        @@status = if File.exist? path
+          YAML.load File.read(path)
         else
-          @@status = {}
+          {}
         end
       end
 

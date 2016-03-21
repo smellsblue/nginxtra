@@ -16,7 +16,7 @@ describe Nginxtra::Actions::Compile do
     expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
-    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    allow(thor_mock).to receive(:options).and_return("force" => false)
     allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
     expect(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return(nil)
     allow(Time).to receive(:now).and_return(:fake_time)
@@ -32,7 +32,7 @@ describe Nginxtra::Actions::Compile do
     expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
-    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    allow(thor_mock).to receive(:options).and_return("force" => false)
     allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
     expect(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return("--other-options")
     allow(Time).to receive(:now).and_return(:fake_time)
@@ -48,7 +48,7 @@ describe Nginxtra::Actions::Compile do
     allow(Nginxtra::Status).to receive(:[]).with(:last_compile_version).and_return(Nginxtra::Config.nginx_version)
     expect(thor_mock).to_not receive(:inside)
     expect(thor_mock).to_not receive(:run) { RunMock.success }
-    allow(thor_mock).to receive(:options).and_return({ "force" => false })
+    allow(thor_mock).to receive(:options).and_return("force" => false)
     expect(thor_mock).to receive(:say).with("nginx compilation is up to date")
     expect(Nginxtra::Status).to_not receive(:[]=)
     Nginxtra::Actions::Compile.new(thor_mock, config_mock).compile
@@ -60,7 +60,7 @@ describe Nginxtra::Actions::Compile do
     expect(thor_mock).to receive(:run).with("sh configure --prefix=#{build_dir} --conf-path=#{config_file} --pid-path=#{pidfile} --option1 --option2") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make") { RunMock.success }
     expect(thor_mock).to receive(:run).with("make install") { RunMock.success }
-    allow(thor_mock).to receive(:options).and_return({ "force" => true })
+    allow(thor_mock).to receive(:options).and_return("force" => true)
     allow(config_mock).to receive(:compile_options).and_return("--option1 --option2")
     allow(Nginxtra::Status).to receive(:[]).with(:last_compile_options).and_return("--option1 --option2")
     allow(Time).to receive(:now).and_return(:fake_time)

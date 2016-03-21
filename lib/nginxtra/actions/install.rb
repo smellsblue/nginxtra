@@ -17,14 +17,14 @@ module Nginxtra
       # Look for nginx installation and fail if it exists (unless
       # --ignore-nginx-check is passed).
       def check_if_nginx_is_installed
-        return unless File.exists?("/etc/init.d/nginx")
+        return unless File.exist?("/etc/init.d/nginx")
 
         if @thor.options["ignore-nginx-check"]
           @thor.say @thor.set_color("Detected nginx install, but ignoring!", :red, true)
           return
         end
 
-        raise Nginxtra::Error::NginxDetected.new("Uninstall nginx before installing nginxtra", :header => "It appears nginx is already installed!", :message => "Since /etc/init.d/nginx exists, you might have an existing nginx installation that will conflict with nginxtra.  If you want to install nginxtra alongside nginx (at your own risk), please include the --ignore-nginx-check option to bypass this check.")
+        raise Nginxtra::Error::NginxDetected.new("Uninstall nginx before installing nginxtra", header: "It appears nginx is already installed!", message: "Since /etc/init.d/nginx exists, you might have an existing nginx installation that will conflict with nginxtra.  If you want to install nginxtra alongside nginx (at your own risk), please include the --ignore-nginx-check option to bypass this check.")
       end
 
       # Create a script in the base directory which be symlinked to
@@ -35,7 +35,7 @@ module Nginxtra
         workingdir = File.expand_path "."
 
         @thor.inside Nginxtra::Config.base_dir do
-          @thor.create_file filename, %{#!/bin/sh
+          @thor.create_file filename, %(#!/bin/sh
 
 ### BEGIN INIT INFO
 # Provides:          nginxtra
@@ -50,13 +50,13 @@ module Nginxtra
 export GEM_HOME="#{ENV["GEM_HOME"]}"
 export GEM_PATH="#{ENV["GEM_PATH"]}"
 #{Nginxtra::Config.ruby_path} "#{File.join Nginxtra::Config.gem_dir, "bin/nginxtra"}" "$1" --basedir="#{Nginxtra::Config.base_dir}" --config="#{Nginxtra::Config.loaded_config_path}" --workingdir="#{workingdir}" --non-interactive
-}, :force => true
+), force: true
           @thor.chmod filename, 0755
         end
 
-        run! %{#{sudo true}rm /etc/init.d/nginxtra} if File.exists? "/etc/init.d/nginxtra"
-        run! %{#{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra}
-        run! %{#{sudo true}update-rc.d nginxtra defaults}
+        run! %(#{sudo true}rm /etc/init.d/nginxtra) if File.exist? "/etc/init.d/nginxtra"
+        run! %(#{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra)
+        run! %(#{sudo true}update-rc.d nginxtra defaults)
       end
 
       # Notify the user that installation should be up to date.

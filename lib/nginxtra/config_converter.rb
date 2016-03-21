@@ -16,6 +16,7 @@ module Nginxtra
     end
 
     private
+
     def header
       @output.puts "nginxtra.config do"
       @indentation + 1
@@ -31,7 +32,7 @@ module Nginxtra
       options.each do |option|
         next if invalid_compile_option? option
         @output.print @indentation
-        @output.puts %{compile_option "#{option}"}
+        @output.puts %(compile_option "#{option}")
       end
     end
 
@@ -57,7 +58,7 @@ module Nginxtra
     def config_file(input)
       return unless input
       @output.print @indentation
-      @output.puts %{file "nginx.conf" do}
+      @output.puts %(file "nginx.conf" do)
       @indentation + 1
       line = Nginxtra::ConfigConverter::Line.new @indentation, @output
 
@@ -114,7 +115,7 @@ module Nginxtra
     end
 
     class Token
-      KEYWORDS = ["break", "if", "return"].freeze
+      KEYWORDS = %w(break if return).freeze
       TERMINAL_CHARACTERS = ["{", "}", ";"].freeze
       attr_reader :value
 
@@ -181,11 +182,12 @@ module Nginxtra
         if @value =~ /^\d+$/
           @value
         else
-          %{"#{@value.gsub("\\") { "\\\\" }}"}
+          %("#{@value.gsub("\\") { "\\\\" }}")
         end
       end
 
       private
+
       def space!
         return if @value.empty?
         @ready = true
@@ -202,10 +204,10 @@ module Nginxtra
       end
 
       def reset!
-        if @next
-          @value = @next
+        @value = if @next
+          @next
         else
-          @value = ""
+          ""
         end
 
         @next = nil
@@ -245,12 +247,13 @@ module Nginxtra
       end
 
       private
+
       def is_if?
         @tokens.first.is_if?
       end
 
       def passenger?
-        ["passenger_root", "passenger_ruby", "passenger_enabled"].include? @tokens.first.value
+        %w(passenger_root passenger_ruby passenger_enabled).include? @tokens.first.value
       end
 
       def puts_line

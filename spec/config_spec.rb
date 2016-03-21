@@ -3,13 +3,13 @@ require "spec_helper"
 describe Nginxtra::Config do
   def stub_files(files)
     class << File
-      alias_method :orig_exists?, :exists?
+      alias_method :orig_exist?, :exist?
       alias_method :orig_read, :read
     end
 
-    allow(File).to receive(:exists?) do |path|
+    allow(File).to receive(:exist?) do |path|
       next true if files.include? path
-      File.orig_exists? path
+      File.orig_exist? path
     end
 
     allow(File).to receive(:read) do |path|
@@ -256,57 +256,57 @@ http {
     before { expect(File).to receive(:absolute_path).with(".").and_return("/home/example/some/path") }
 
     it "finds the config file if it is in the current directory" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/home/example/some/path/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the current directory's config directory" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/home/example/some/path/config/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the first parent" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/home/example/some/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the second parent" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/home/example/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the third parent" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/home/nginxtra.conf.rb"
     end
 
     it "finds the config file if it is in the fourth parent" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/nginxtra.conf.rb").and_return(true)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/nginxtra.conf.rb").and_return(true)
       expect(Nginxtra::Config.path).to eq "/nginxtra.conf.rb"
     end
 
     it "returns nil if no config file is found" do
-      expect(File).to receive(:exists?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/example/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/home/nginxtra.conf.rb").and_return(false)
-      expect(File).to receive(:exists?).with("/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/path/config/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/some/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/example/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/home/nginxtra.conf.rb").and_return(false)
+      expect(File).to receive(:exist?).with("/nginxtra.conf.rb").and_return(false)
       expect(Nginxtra::Config.path).to be_nil
     end
   end
@@ -319,7 +319,7 @@ http {
         config = nginxtra
         nil
       end
-      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect(File).to receive(:exist?).with("/a/fake/path").and_return(true)
       expect(Nginxtra::Config.require!).to eq config
     end
 
@@ -334,7 +334,7 @@ http {
         nil
       end
       expect(Nginxtra::Config).to receive(:last_config).and_return(nil)
-      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect(File).to receive(:exist?).with("/a/fake/path").and_return(true)
       expect { Nginxtra::Config.require! }.to raise_error(Nginxtra::Error::InvalidConfig)
     end
 
@@ -345,7 +345,7 @@ http {
         config = nginxtra
         nil
       end
-      expect(File).to receive(:exists?).with("/a/fake/path").and_return(true)
+      expect(File).to receive(:exist?).with("/a/fake/path").and_return(true)
       expect(Nginxtra::Config.require!("/a/fake/path")).to eq config
     end
   end
@@ -394,7 +394,7 @@ http {
     end
 
     it "allows run_as option" do
-      config = nginxtra.simple_config :run_as => "run_as_user" do
+      config = nginxtra.simple_config run_as: "run_as_user" do
         static
       end
 
@@ -425,7 +425,7 @@ http {
     end
 
     it "allows env option" do
-      config = nginxtra.simple_config :env => { EXAMPLE: "abc", OTHER_EXAMPLE: 123 } do
+      config = nginxtra.simple_config env: { EXAMPLE: "abc", OTHER_EXAMPLE: 123 } do
         static
       end
 
@@ -461,7 +461,7 @@ http {
         rails
       end
 
-      expect(config.compile_options).to eq %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      expect(config.compile_options).to eq %(--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx")
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
@@ -493,10 +493,10 @@ http {
     it "allows multiple rails servers to be specified" do
       config = nginxtra.simple_config do
         rails
-        rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
+        rails port: 8080, server_name: "otherserver.com", root: "/path/to/rails"
       end
 
-      expect(config.compile_options).to eq %{--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx"}
+      expect(config.compile_options).to eq %(--with-http_gzip_static_module --with-cc-opt=-Wno-error --add-module="PASSENGER_ROOT/ext/nginx")
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
@@ -594,11 +594,11 @@ http {
       end
 
       config = nginxtra.simple_config do
-        other :extra => "syrup"
+        other extra: "syrup"
 
         other do
-          other :extra => "foo" do
-            other :extra => "bar"
+          other extra: "foo" do
+            other extra: "bar"
           end
         end
       end
@@ -657,9 +657,9 @@ end
 "
 
       config = nginxtra.simple_config do
-        rails :port => 8080
-        other :extra => "butter"
-        other :extra => "syrup"
+        rails port: 8080
+        other extra: "butter"
+        other extra: "syrup"
       end
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
@@ -711,9 +711,9 @@ end
       config = nginxtra do |n|
         n.custom_partials "/my_custom_partials"
       end.simple_config do
-        rails :port => 8080
-        other :extra => "butter"
-        other :extra => "syrup"
+        rails port: 8080
+        other extra: "butter"
+        other extra: "syrup"
       end
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
@@ -758,12 +758,12 @@ end
 "
 
       config = nginxtra.simple_config do
-        other :extra => "butter" do
+        other extra: "butter" do
           additional "content"
           with_more "yielded content"
         end
 
-        other :extra => "syrup"
+        other extra: "syrup"
       end
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
@@ -806,9 +806,9 @@ end
 "
 
       config = nginxtra.simple_config do
-        other :extra => "butter" do
-          other :extra => "syrup" do
-            other :extra => "salt"
+        other extra: "butter" do
+          other extra: "syrup" do
+            other extra: "salt"
           end
 
           additional "content"
@@ -875,7 +875,7 @@ end
       allow(File).to receive(:read) { |path| File.orig_read path }
       config = nginxtra.simple_config do
         rails
-        rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
+        rails port: 8080, server_name: "otherserver.com", root: "/path/to/rails"
       end
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "the_nginx_conf {
@@ -931,7 +931,7 @@ end
         n.custom_files "/my_custom_files"
       end.simple_config do
         rails
-        rails :port => 8080, :server_name => "otherserver.com", :root => "/path/to/rails"
+        rails port: 8080, server_name: "otherserver.com", root: "/path/to/rails"
       end
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "the_nginx_conf {

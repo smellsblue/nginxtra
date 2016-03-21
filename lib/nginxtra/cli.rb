@@ -4,13 +4,13 @@ module Nginxtra
   class CLI < Thor
     include Thor::Actions
 
-    class_option "force", :type => :boolean, :banner => "Force a task to happen, regardless of what nginxtra thinks", :aliases => "-f"
-    class_option "trace", :type => :boolean, :banner => "Output stack traces on error"
-    class_option "non-interactive", :type => :boolean, :banner => "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", :aliases => "-I"
-    class_option "ignore-nginx-check", :type => :boolean, :banner => "Ignore the nginx check if installing"
-    class_option "config", :type => :string, :banner => "Specify the configuration file to use", :aliases => "-c"
-    class_option "basedir", :type => :string, :banner => "Specify the directory to store nginx files", :aliases => "-b"
-    class_option "workingdir", :type => :string, :banner => "Specify the working directory", :aliases => "-w"
+    class_option "force", type: :boolean, banner: "Force a task to happen, regardless of what nginxtra thinks", aliases: "-f"
+    class_option "trace", type: :boolean, banner: "Output stack traces on error"
+    class_option "non-interactive", type: :boolean, banner: "If nginxtra would ask a question, it instead proceeds as if 'no' were the answer", aliases: "-I"
+    class_option "ignore-nginx-check", type: :boolean, banner: "Ignore the nginx check if installing"
+    class_option "config", type: :string, banner: "Specify the configuration file to use", aliases: "-c"
+    class_option "basedir", type: :string, banner: "Specify the directory to store nginx files", aliases: "-b"
+    class_option "workingdir", type: :string, banner: "Specify the working directory", aliases: "-w"
 
     map "-v" => "version"
 
@@ -25,11 +25,11 @@ module Nginxtra
       options to be ignored (and the defaults will be used in the resulting
       nginxtra.conf.rb).  The result will be output to nginxtra.conf.rb in the current
       directory, unless an override value is specified with the --config option."
-    method_option "nginx-bin", :type => :string, :banner => "Point to the compiled nginx to retrieve compile options", :aliases => "-n"
-    method_option "nginx-conf", :type => :string, :banner => "Point to the nginx.conf file to retrieve the existing configuration", :aliases => "-F", :default => "nginx.conf"
-    method_option "ignore-nginx-bin", :type => :boolean, :banner => "Ignore the nginx binary, and assume default compile time options", :aliases => "-N"
-    method_option "output", :type => :boolean, :banner => "Output to standard out instead of to a file", :aliases => "-o"
-    method_option "input", :type => :boolean, :banner => "Read nginx.conf from standard in instead of a file", :aliases => "-i"
+    method_option "nginx-bin", type: :string, banner: "Point to the compiled nginx to retrieve compile options", aliases: "-n"
+    method_option "nginx-conf", type: :string, banner: "Point to the nginx.conf file to retrieve the existing configuration", aliases: "-F", default: "nginx.conf"
+    method_option "ignore-nginx-bin", type: :boolean, banner: "Ignore the nginx binary, and assume default compile time options", aliases: "-N"
+    method_option "output", type: :boolean, banner: "Output to standard out instead of to a file", aliases: "-o"
+    method_option "input", type: :boolean, banner: "Read nginx.conf from standard in instead of a file", aliases: "-i"
     def convert
       Nginxtra::Error.protect self do
         Nginxtra::Actions::Convert.new(self, nil).convert
@@ -42,9 +42,9 @@ module Nginxtra
       --file is provided, something other than nginx.conf can be output.  The --list
       option can be provided to list known config files.  The --compile-options option
       can be provided to list compile time options being passed to nginx."
-    method_option "compile-options", :type => :boolean, :banner => "Show compile options being used", :aliases => "-C"
-    method_option "file", :type => :string, :banner => "The config file that is printed", :aliases => "-F", :default => "nginx.conf"
-    method_option "list", :type => :boolean, :banner => "List known files", :aliases => "-l"
+    method_option "compile-options", type: :boolean, banner: "Show compile options being used", aliases: "-C"
+    method_option "file", type: :string, banner: "The config file that is printed", aliases: "-F", default: "nginx.conf"
+    method_option "list", type: :boolean, banner: "List known files", aliases: "-l"
     def print
       Nginxtra::Error.protect self do
         set_working_dir!
@@ -141,6 +141,7 @@ module Nginxtra
     end
 
     private
+
     def prepare_config!
       Nginxtra::Config.base_dir = options["basedir"]
       result = Nginxtra::Config.require! options["config"]
@@ -149,9 +150,7 @@ module Nginxtra
     end
 
     def set_working_dir!
-      if options["workingdir"]
-        Dir.chdir options["workingdir"]
-      end
+      Dir.chdir options["workingdir"] if options["workingdir"]
     end
 
     class << self
