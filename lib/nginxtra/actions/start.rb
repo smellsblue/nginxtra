@@ -28,7 +28,7 @@ module Nginxtra
       # Save nginx config files to the proper config file path.
       def save_config_files
         files = @config.files
-        raise Nginxtra::Error::InvalidConfig.new("Missing definition for nginx.conf", header: "Missing definition for nginx.conf!", message: "You must define your nginx.conf configuration in your nginxtra.conf.rb file.") unless files.include? "nginx.conf"
+        raise Nginxtra::Error::MissingNginxConfig unless files.include? "nginx.conf"
 
         @thor.inside Nginxtra::Config.config_dir do
           files.each do |filename|

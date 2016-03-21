@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
 require "rubocop/rake_task"
 require "rspec/core/rake_task"
 require File.expand_path("../lib/nginxtra/version.rb", __FILE__)
@@ -51,7 +52,7 @@ def update_nginx
     return
   end
 
-  results = doc.search("[text()*='Stable version']").first.parent.next.search("a").select { |x| x.attr("href") =~ /\/nginx-\d+\.\d+\.\d+\.tar\.gz$/ }
+  results = doc.search("[text()*='Stable version']").first.parent.next.search("a").select { |x| x.attr("href") =~ %r{/nginx-\d+\.\d+\.\d+\.tar\.gz$} }
 
   if results.size != 1
     puts "Could not find just 1 link for the nginx-VERSION.tar.gz download, found #{results.size}"
@@ -60,7 +61,7 @@ def update_nginx
 
   path = results.first.attr "href"
 
-  unless path =~ /^\/(?:.*\/)?nginx-(\d+\.\d+\.\d+)\.tar\.gz$/
+  unless path =~ %r{^/(?:.*/)?nginx-(\d+\.\d+\.\d+)\.tar\.gz$}
     puts "Unexpected path style, expected /something, got: '#{path}'"
     return
   end
@@ -125,14 +126,15 @@ Gem::Specification.new do |s|
   s.name           = "nginxtra"
   s.version        = "#{Nginxtra::Version}"
   s.summary        = "Wrapper of nginx for easy install and use."
-  s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be used to compile nginx and configure the configuration."
+  s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be " \
+                     "used to compile nginx and configure the configuration."
   s.author         = "Mike Virata-Stone"
   s.email          = "mike@virata-stone.com"
   s.license        = "nginx"
   s.files          = FileList["bin/**/*", "lib/**/*", "templates/**/*", "vendor/**/*"]
   s.require_path   = "lib"
   s.bindir         = "bin"
-  s.executables    = ["nginxtra", "nginxtra_rails"]
+  s.executables    = %w(nginxtra nginxtra_rails)
   s.homepage       = "https://github.com/smellsblue/nginxtra"
   s.add_runtime_dependency "thor", "#{Nginxtra::Gem.dependencies[:thor]}"
   s.add_development_dependency "rake", "~> 10.0"

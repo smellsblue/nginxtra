@@ -38,10 +38,10 @@ module Nginxtra
         return if @@status
 
         @@status = if File.exist? path
-          YAML.load File.read(path)
-        else
-          {}
-        end
+                     YAML.load File.read(path)
+                   else
+                     {}
+                   end
       end
 
       # The full path to the file with the state.

@@ -33,6 +33,6 @@ describe Nginxtra::Actions::Start do
     expect(config_mock).to receive(:files).and_return(["mime_types.conf"])
     allow(thor_mock).to receive(:options).and_return({})
     expect(Nginxtra::Config).to receive(:nginx_running?).and_return(false)
-    expect { Nginxtra::Actions::Start.new(thor_mock, config_mock).start }.to raise_error(Nginxtra::Error::InvalidConfig)
+    expect { Nginxtra::Actions::Start.new(thor_mock, config_mock).start }.to raise_error(Nginxtra::Error::MissingNginxConfig)
   end
 end

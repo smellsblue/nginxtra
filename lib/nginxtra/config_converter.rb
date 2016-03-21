@@ -7,7 +7,7 @@ module Nginxtra
     end
 
     def convert(options)
-      raise Nginxtra::Error::ConvertFailed.new("The convert method can only be called once!") if converted?
+      raise Nginxtra::Error::ConvertFailed, "The convert method can only be called once!" if converted?
       header
       compile_options options[:binary_status]
       config_file options[:config]
@@ -19,14 +19,14 @@ module Nginxtra
 
     def header
       @output.puts "nginxtra.config do"
-      @indentation + 1
+      @indentation.increment
     end
 
     def compile_options(status)
       return unless status
       options = (status[/^configure arguments:\s*(.*)$/, 1] || "").strip
       return if options.empty?
-      options = options.split /\s+/
+      options = options.split(/\s+/)
       process_passenger_compile_options! options
 
       options.each do |option|
@@ -37,12 +37,12 @@ module Nginxtra
     end
 
     def process_passenger_compile_options!(options)
-      return if options.select { |x| x =~ /^--add-module.*\/passenger.*/ }.empty?
+      return if options.select { |x| x =~ %r{^--add-module.*/passenger.*} }.empty?
       @output.print @indentation
       @output.puts "require_passenger!"
 
       options.delete_if do |x|
-        next true if x =~ /^--add-module.*\/passenger.*/
+        next true if x =~ %r{^--add-module.*/passenger.*}
         ["--with-http_ssl_module", "--with-http_gzip_static_module", "--with-cc-opt=-Wno-error"].include? x
       end
     end
@@ -59,7 +59,7 @@ module Nginxtra
       return unless input
       @output.print @indentation
       @output.puts %(file "nginx.conf" do)
-      @indentation + 1
+      @indentation.increment
       line = Nginxtra::ConfigConverter::Line.new @indentation, @output
 
       each_token(input) do |token|
@@ -71,8 +71,8 @@ module Nginxtra
         end
       end
 
-      raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file!") unless line.empty?
-      @indentation - 1
+      raise Nginxtra::Error::ConvertFailed, "Unexpected end of file!" unless line.empty?
+      @indentation.decrement
       @output.print @indentation
       @output.puts "end"
     end
@@ -91,7 +91,7 @@ module Nginxtra
       end
 
       yield token.instance while token.ready?
-      raise Nginxtra::Error::ConvertFailed.new("Unexpected end of file in mid token!") unless token.value.empty?
+      raise Nginxtra::Error::ConvertFailed, "Unexpected end of file in mid token!" unless token.value.empty?
     end
 
     def chomp_comment(input)
@@ -101,9 +101,9 @@ module Nginxtra
     end
 
     def footer
-      @indentation - 1
+      @indentation.decrement
       @output.puts "end"
-      raise Nginxtra::Error::ConvertFailed.new("Missing end blocks!") unless @indentation.done?
+      raise Nginxtra::Error::ConvertFailed, "Missing end blocks!" unless @indentation.done?
     end
 
     def converted!
@@ -125,16 +125,16 @@ module Nginxtra
         @ready = false
       end
 
-      def is_if?
+      def if?
         @value == "if"
       end
 
       def if_start!
-        @value.gsub! /^\(/, ""
+        @value.gsub!(/^\(/, "")
       end
 
       def if_end!
-        @value.gsub! /\)$/, ""
+        @value.gsub!(/\)$/, "")
       end
 
       def terminal_character?
@@ -154,7 +154,7 @@ module Nginxtra
       end
 
       def instance
-        raise Nginxtra::Error::ConvertFailed.new("Whoops!") unless ready?
+        raise Nginxtra::Error::ConvertFailed, "Whoops!" unless ready?
         token = Nginxtra::ConfigConverter::Token.new @value
         reset!
         token
@@ -205,10 +205,10 @@ module Nginxtra
 
       def reset!
         @value = if @next
-          @next
-        else
-          ""
-        end
+                   @next
+                 else
+                   ""
+                 end
 
         @next = nil
         @ready = false
@@ -242,14 +242,14 @@ module Nginxtra
         elsif @tokens.last.block_end?
           puts_block_end
         else
-          raise Nginxtra::Error::ConvertFailed.new "Can't puts invalid line!"
+          raise Nginxtra::Error::ConvertFailed, "Can't puts invalid line!"
         end
       end
 
       private
 
-      def is_if?
-        @tokens.first.is_if?
+      def if?
+        @tokens.first.if?
       end
 
       def passenger?
@@ -257,7 +257,7 @@ module Nginxtra
       end
 
       def puts_line
-        raise Nginxtra::Error::ConvertFailed.new("Line must have a first label!") unless @tokens.length > 1
+        raise Nginxtra::Error::ConvertFailed, "Line must have a first label!" unless @tokens.length > 1
         return puts_passenger if passenger?
         print_indentation
         print_first
@@ -275,12 +275,12 @@ module Nginxtra
         elsif @tokens.first.value == "passenger_enabled"
           print_newline "passenger_on!"
         else
-          raise Nginxtra::Error::ConvertFailed.new("Whoops!")
+          raise Nginxtra::Error::ConvertFailed, "Whoops!"
         end
       end
 
       def puts_block_start
-        raise Nginxtra::Error::ConvertFailed.new("Block start must have a first label!") unless @tokens.length > 1
+        raise Nginxtra::Error::ConvertFailed, "Block start must have a first label!" unless @tokens.length > 1
         print_indentation
         print_first
         print_args
@@ -289,7 +289,7 @@ module Nginxtra
       end
 
       def puts_block_end
-        raise Nginxtra::Error::ConvertFailed.new("Block end can't have labels!") unless @tokens.length == 1
+        raise Nginxtra::Error::ConvertFailed, "Block end can't have labels!" unless @tokens.length == 1
         unindent
         print_indentation
         print_newline("end")
@@ -308,7 +308,7 @@ module Nginxtra
         return if args.empty?
         @output.print " "
 
-        if is_if?
+        if if?
           args.first.if_start!
           args.last.if_end!
         end
@@ -321,11 +321,11 @@ module Nginxtra
       end
 
       def indent
-        @indentation + 1
+        @indentation.increment
       end
 
       def unindent
-        @indentation - 1
+        @indentation.decrement
       end
     end
   end

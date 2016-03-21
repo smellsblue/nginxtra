@@ -63,31 +63,31 @@ describe Nginxtra::Config do
 
     it "prevents the use of --prefix option" do
       config = nginxtra
-      expect { config.compile_option "--prefix=/usr/share/nginx" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect { config.compile_option "--prefix=/usr/share/nginx" }.to raise_error(Nginxtra::Error::InvalidCompilationOption)
       expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of --prefix option embedded with other options" do
       config = nginxtra
-      expect { config.compile_option "--someoption --prefix=/usr/share/nginx --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect { config.compile_option "--someoption --prefix=/usr/share/nginx --someotheroption" }.to raise_error(Nginxtra::Error::InvalidCompilationOption)
       expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --sbin-path option" do
       config = nginxtra
-      expect { config.compile_option "--someoption --sbin-path=something --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect { config.compile_option "--someoption --sbin-path=something --someotheroption" }.to raise_error(Nginxtra::Error::InvalidCompilationOption)
       expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --conf-path option" do
       config = nginxtra
-      expect { config.compile_option "--someoption --conf-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect { config.compile_option "--someoption --conf-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidCompilationOption)
       expect(config.compile_options).to eq ""
     end
 
     it "prevents the use of the --pid-path option" do
       config = nginxtra
-      expect { config.compile_option "--someoption --pid-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidConfig)
+      expect { config.compile_option "--someoption --pid-path=conf --someotheroption" }.to raise_error(Nginxtra::Error::InvalidCompilationOption)
       expect(config.compile_options).to eq ""
     end
   end
@@ -350,6 +350,18 @@ http {
     end
   end
 
+  describe "without Passenger installed" do
+    it "fails when passenger is specified" do
+      expect(Gem::Specification).to receive(:find_by_name).with("passenger").and_return(nil)
+
+      expect do
+        nginxtra.simple_config do
+          rails
+        end
+      end.to raise_error(Nginxtra::Error::MissingPassengerGem)
+    end
+  end
+
   describe "auto config capabilities" do
     before do
       allow(Nginxtra::Config).to receive(:passenger_spec) do
@@ -534,6 +546,14 @@ http {
 "
     end
 
+    it "doesn't allow partials with non empty/hash parameters" do
+      expect do
+        nginxtra.simple_config do
+          static 1, 2, 3
+        end
+      end.to raise_error(Nginxtra::Error::InvalidPartialArguments)
+    end
+
     it "allows partials and regular blocks together" do
       config = nginxtra.simple_config do
         another_block do
@@ -710,11 +730,14 @@ end
 
       config = nginxtra do |n|
         n.custom_partials "/my_custom_partials"
-      end.simple_config do
+      end
+
+      config.simple_config do
         rails port: 8080
         other extra: "butter"
         other extra: "syrup"
       end
+
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "worker_processes 1;
 
@@ -927,12 +950,16 @@ the_nginx_conf do
 end
 ")
       allow(File).to receive(:read) { |path| File.orig_read path }
+
       config = nginxtra do |n|
         n.custom_files "/my_custom_files"
-      end.simple_config do
+      end
+
+      config.simple_config do
         rails
         rails port: 8080, server_name: "otherserver.com", root: "/path/to/rails"
       end
+
       expect(config.files).to eq ["nginx.conf"]
       expect(config.file_contents("nginx.conf")).to eq "the_nginx_conf {
     has_been changed;

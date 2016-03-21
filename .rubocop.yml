@@ -1,5 +1,7 @@
 AllCops:
   Exclude:
+    - presentations/**/*
+    - templates/partials/nginx.conf/wordpress.rb
     - tmp/**/*
     - vendor/**/*
   DisplayCopNames: true
@@ -7,8 +9,14 @@ AllCops:
 Documentation:
   Enabled: false
 
+Metrics/ClassLength:
+  Max: 200
+
 Metrics/LineLength:
-  Max: 120
+  Max: 200
+
+Metrics/MethodLength:
+  Max: 20
 
 Style/SignalException:
   EnforcedStyle: only_raise

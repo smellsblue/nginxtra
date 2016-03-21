@@ -19,15 +19,11 @@ module Nginxtra
         end
 
         def ensure_in_rails_app
-          unless in_rails_app?
-            raise Nginxtra::Error::IllegalState.new "You must be in a rails root directory to run nginxtra_rails."
-          end
+          raise Nginxtra::Error::IllegalState, "You must be in a rails root directory to run nginxtra_rails." unless in_rails_app?
         end
 
         def ensure_server_gem_installed
-          unless passenger_installed?
-            raise Nginxtra::Error::IllegalState.new "Please 'gem install passenger' to continue."
-          end
+          raise Nginxtra::Error::IllegalState, "Please 'gem install passenger' to continue." unless passenger_installed?
         end
 
         def start_nginxtra

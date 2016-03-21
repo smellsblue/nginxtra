@@ -45,10 +45,10 @@ module Nginxtra
         return if @thor.options["ignore-nginx-bin"]
 
         binary = if @thor.options["nginx-bin"]
-          @thor.options["nginx-bin"]
-        else
-          etc_nginx_binary
-        end
+                   @thor.options["nginx-bin"]
+                 else
+                   etc_nginx_binary
+                 end
 
         @thor.run "#{binary} -V 2>&1", capture: true
       end
@@ -61,7 +61,7 @@ module Nginxtra
       end
 
       def open_file(path)
-        raise Nginxtra::Error::ConvertFailed.new("Missing config file #{path}") unless File.exist? path
+        raise Nginxtra::Error::ConvertFailed, "Missing config file #{path}" unless File.exist? path
 
         File.open(path, "r").tap do |stream|
           @streams_to_close << stream
@@ -69,7 +69,7 @@ module Nginxtra
       end
 
       def close_streams!
-        @streams_to_close.each &:close
+        @streams_to_close.each(&:close)
       end
     end
   end

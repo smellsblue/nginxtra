@@ -48,7 +48,7 @@ module Nginxtra
     # gem partials.
     def partial_paths
       [].tap do |result|
-        result.push *@partial_paths
+        result.push(*@partial_paths)
         result.push File.join(Nginxtra::Config.template_dir, "partials")
         result.push File.join(Nginxtra::Config.gem_template_dir, "partials")
       end
@@ -61,7 +61,7 @@ module Nginxtra
     # file templates.
     def file_paths
       [].tap do |result|
-        result.push *@file_paths
+        result.push(*@file_paths)
         result.push File.join(Nginxtra::Config.template_dir, "files")
         result.push File.join(Nginxtra::Config.gem_template_dir, "files")
       end
@@ -73,7 +73,7 @@ module Nginxtra
     #     ...
     #   end
     def config(&block)
-      instance_eval &block
+      instance_eval(&block)
       self
     end
 
@@ -128,10 +128,10 @@ module Nginxtra
     #   end
     def compile_option(opt)
       opt = "--#{opt}" unless opt =~ /^--/
-      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --prefix", header: "Invalid compilation option --prefix", message: "The --prefix compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where nginx is compiled and run from.") if opt =~ /--prefix=/
-      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --sbin-path", header: "Invalid compilation option --sbin-path", message: "The --sbin-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control what binary is used to run nginx.") if opt =~ /--sbin-path=/
-      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --conf-path", header: "Invalid compilation option --conf-path", message: "The --conf-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control the configuration entirely via #{Nginxtra::Config::FILENAME}.") if opt =~ /--conf-path=/
-      raise Nginxtra::Error::InvalidConfig.new("Invalid compilation option --pid-path", header: "Invalid compilation option --pid-path", message: "The --pid-path compile option is not allowed with nginxtra.  It is reserved so nginxtra can control where the pid file is created.") if opt =~ /--pid-path=/
+      raise Nginxtra::Error::InvalidCompilationOption, "prefix" if opt =~ /--prefix=/
+      raise Nginxtra::Error::InvalidCompilationOption, "sbin-path" if opt =~ /--sbin-path=/
+      raise Nginxtra::Error::InvalidCompilationOption, "conf-path" if opt =~ /--conf-path=/
+      raise Nginxtra::Error::InvalidCompilationOption, "pid-path" if opt =~ /--pid-path=/
       @compile_options << opt
     end
 
@@ -172,11 +172,12 @@ module Nginxtra
         return config if File.exist? config
         path = File.dirname path
 
-        begin
+        loop do
           config = File.join path, FILENAME
           return config if File.exist? config
           path = File.dirname path
-        end until path == "/"
+          break if path == "/"
+        end
 
         config = File.join path, FILENAME
         config if File.exist? config
@@ -191,15 +192,15 @@ module Nginxtra
       # file cannot be found.
       def require!(config_path = nil)
         config_path = if config_path
-          File.absolute_path config_path
-        else
-          path
-        end
+                        File.absolute_path config_path
+                      else
+                        path
+                      end
 
-        raise Nginxtra::Error::MissingConfig.new("Cannot find #{FILENAME} to configure nginxtra!") unless config_path
-        raise Nginxtra::Error::MissingConfig.new("Missing file #{config_path} to configure nginxtra!") unless File.exist?(config_path)
+        raise Nginxtra::Error::MissingConfig, "Cannot find #{FILENAME} to configure nginxtra!" unless config_path
+        raise Nginxtra::Error::MissingConfig, "Missing file #{config_path} to configure nginxtra!" unless File.exist?(config_path)
         require config_path
-        raise Nginxtra::Error::InvalidConfig.new("No configuration is specified in #{config_path}!") unless last_config
+        raise Nginxtra::Error::NoConfigSpecified, config_path unless last_config
         @loaded_config_path = config_path
         last_config
       end
@@ -294,7 +295,7 @@ module Nginxtra
       # be found.
       def passenger_spec
         @passenger_spec ||= Gem::Specification.find_by_name("passenger").tap do |spec|
-          raise InvalidConfig.new("Missing passenger gem", header: "Missing passenger gem!", message: "You cannot reference passenger unless the passenger gem is installed!") if spec.nil?
+          raise Nginxtra::Error::MissingPassengerGem if spec.nil?
         end
       end
 
@@ -370,7 +371,7 @@ module Nginxtra
         @config = config
         @indentation = Nginxtra::Config::Indentation.new indent_size: 4
         @file_contents = []
-        instance_eval &block
+        instance_eval(&block)
       end
 
       # The file contents that were defined for this config file.
@@ -431,9 +432,9 @@ module Nginxtra
         empty_config_line unless @file_contents.empty? || @begin_of_block
         bare_config_line "#{name} {"
         @begin_of_block = true
-        @indentation + 1
+        @indentation.increment
         yield if block_given?
-        @indentation - 1
+        @indentation.decrement
         bare_config_line "}"
         @end_of_block = true
       end
@@ -474,14 +475,14 @@ module Nginxtra
       # in will be invoked (if given) if the template invokes yield.
       def process_template!(template, options = {}, yielder = nil)
         if template.respond_to? :call
-          block = proc { instance_eval &yielder if yielder }
+          block = proc { instance_eval(&yielder) if yielder }
           instance_exec options, block, &template
         else
           process_template_with_yields! template do |x|
             if x
               options[x.to_sym]
-            else
-              instance_eval &yielder if yielder
+            elsif yielder
+              instance_eval(&yielder)
             end
           end
         end
@@ -533,31 +534,35 @@ module Nginxtra
 
       private
 
+      def full_partial_paths(partial_name)
+        @config.partial_paths.lazy.map do |path|
+          File.join path, @filename, "#{partial_name}.rb"
+        end
+      end
+
       def partial?(partial_name)
         return true if Nginxtra::Config::Extension.partial? @filename, partial_name
 
-        @config.partial_paths.any? do |path|
-          File.exist? File.join(path, "#{@filename}/#{partial_name}.rb")
+        full_partial_paths(partial_name).any? do |path|
+          File.exist? path
         end
       end
 
       def invoke_partial(partial_name, args, block)
-        if Nginxtra::Config::Extension.partial? @filename, partial_name
-          partial_path = Nginxtra::Config::Extension.partial @filename, partial_name
-        else
-          partial_path = @config.partial_paths.map do |path|
-            File.join path, "#{@filename}/#{partial_name}.rb"
-          end.find do |path|
-            File.exist? path
-          end
-        end
+        partial_path = if Nginxtra::Config::Extension.partial? @filename, partial_name
+                         Nginxtra::Config::Extension.partial @filename, partial_name
+                       else
+                         full_partial_paths(partial_name).find do |path|
+                           File.exist? path
+                         end
+                       end
 
         if args.empty?
           partial_options = {}
         elsif args.length == 1 && args.first.is_a?(Hash)
           partial_options = args.first
         else
-          raise InvalidConfig.new("Invalid partial arguments", header: "Invalid partial arguments!", message: "You can only pass 0 arguments or 1 hash to a partial!")
+          raise Nginxtra::Error::InvalidPartialArguments
         end
 
         process_template! partial_path, partial_options, block
@@ -605,13 +610,10 @@ module Nginxtra
       def find_config_files!(path)
         files_hash = {}
 
-        Dir["#{path}/**/*.rb"].select do |x|
-          File.file? x
-        end.map do |x|
-          file_name = x.sub /^#{Regexp.quote path.to_s}\/(.*)\.rb$/, "\\1"
-          { path: x, config_file: file_name }
-        end.each do |x|
-          files_hash[x[:config_file]] = x
+        Dir["#{path}/**/*.rb"].each do |x|
+          next unless File.file? x
+          file_name = x.sub %r{^#{Regexp.quote path.to_s}/(.*)\.rb$}, "\\1"
+          files_hash[file_name] = { path: x, config_file: file_name }
         end
 
         files_hash
@@ -650,18 +652,24 @@ module Nginxtra
         @value == 0
       end
 
-      def -(amount)
-        self + -amount
+      def decrement
+        adjust(-1)
       end
 
-      def +(amount)
-        @value += amount
-        raise Nginxtra::Error::ConvertFailed.new("Missing block end!") if @value < 0
-        @value
+      def increment
+        adjust(1)
       end
 
       def to_s
         " " * indent_size * @value
+      end
+
+      private
+
+      def adjust(amount)
+        @value += amount
+        raise Nginxtra::Error::ConvertFailed, "Missing block end!" if @value < 0
+        @value
       end
     end
   end
@@ -674,5 +682,5 @@ end
 #     ...
 #   end
 def nginxtra(*args, &block)
-  Nginxtra::Config.new *args, &block
+  Nginxtra::Config.new(*args, &block)
 end
