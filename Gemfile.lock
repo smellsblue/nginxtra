@@ -9,6 +9,9 @@ GEM
   specs:
     ast (2.2.0)
     diff-lcs (1.2.5)
+    mini_portile2 (2.0.0)
+    nokogiri (1.6.7.2)
+      mini_portile2 (~> 2.0.0.rc2)
     parser (2.3.0.6)
       ast (~> 2.2)
     powerpack (0.1.1)
@@ -42,6 +45,7 @@ PLATFORMS
 
 DEPENDENCIES
   nginxtra!
+  nokogiri (~> 1.6)
   rake (~> 10.0)
   rspec (~> 3.3)
   rubocop (~> 0.38.0)

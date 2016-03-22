@@ -137,6 +137,7 @@ Gem::Specification.new do |s|
   s.executables    = %w(nginxtra nginxtra_rails)
   s.homepage       = "https://github.com/smellsblue/nginxtra"
   s.add_runtime_dependency "thor", "#{Nginxtra::Gem.dependencies[:thor]}"
+  s.add_development_dependency "nokogiri", "~> 1.6"
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec", "~> 3.3"
   s.add_development_dependency "rubocop", "~> 0.38.0"
