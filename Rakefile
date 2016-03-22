@@ -29,7 +29,7 @@ def update_version(next_version)
   class Version
     class << self
       def to_a
-        to_s.split(".").map &:to_i
+        to_s.split(".").map(&:to_i)
       end
 
       def to_s
@@ -126,7 +126,7 @@ Gem::Specification.new do |s|
   s.name           = "nginxtra"
   s.version        = "#{Nginxtra::Version}"
   s.summary        = "Wrapper of nginx for easy install and use."
-  s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be " \
+  s.description    = "This gem is intended to provide an easy to use configuration file that will automatically be " \\
                      "used to compile nginx and configure the configuration."
   s.author         = "Mike Virata-Stone"
   s.email          = "mike@virata-stone.com"
