@@ -3,7 +3,7 @@ require "spec_helper"
 describe Nginxtra::Status do
   let(:base_dir) { File.absolute_path File.expand_path("~/.nginxtra") }
   let(:status_file) { File.join(base_dir, ".nginxtra_status") }
-  before { Nginxtra::Status.class_variable_set :@@status, nil }
+  before { Nginxtra::Status.send :status=, nil }
 
   describe "with no file to load" do
     before { expect(File).to receive(:exist?).with(status_file).and_return(false) }

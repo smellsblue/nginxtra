@@ -80,7 +80,10 @@ module Nginxtra
     def each_token(input)
       token = Nginxtra::ConfigConverter::Token.new
 
-      while c = input.read(1)
+      loop do
+        c = input.read(1)
+        break unless c
+
         if c == "#"
           chomp_comment input
         else
@@ -95,7 +98,9 @@ module Nginxtra
     end
 
     def chomp_comment(input)
-      while c = input.read(1)
+      loop do
+        c = input.read(1)
+        break unless c
         break if c == "\n"
       end
     end

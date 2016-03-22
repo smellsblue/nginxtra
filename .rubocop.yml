@@ -9,6 +9,9 @@ AllCops:
 Documentation:
   Enabled: false
 
+Metrics/AbcSize:
+  Max: 20
+
 Metrics/ClassLength:
   Max: 200
 

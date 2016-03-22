@@ -1,7 +1,5 @@
 module Nginxtra
   module Action
-    @@ignore_force = false
-
     def initialize(thor, config)
       @thor = thor
       @config = config
@@ -17,18 +15,18 @@ module Nginxtra
 
     def run!(command)
       @thor.run command
-      raise Nginxtra::Error::RunFailed, "The last run command failed" unless $?.success?
+      raise Nginxtra::Error::RunFailed, "The last run command failed" unless $?.success? # rubocop:disable Style/SpecialGlobalVars
     end
 
     def without_force
-      @@ignore_force = true
+      Nginxtra::Action.ignore_force = true
       yield
     ensure
-      @@ignore_force = false
+      Nginxtra::Action.ignore_force = false
     end
 
     def force?
-      return false if @@ignore_force
+      return false if Nginxtra::Action.ignore_force
       @thor.options["force"]
     end
 
@@ -42,6 +40,10 @@ module Nginxtra
 
     def sudo(force = false)
       "sudo " if (force || (@config && @config.require_root?)) && Process.uid != 0
+    end
+
+    class << self
+      attr_accessor :ignore_force
     end
   end
 end

@@ -6,7 +6,6 @@ module Nginxtra
     FILENAME = "nginxtra.conf.rb".freeze
     NGINX_CONF_FILENAME = "nginx.conf".freeze
     NGINX_PIDFILE_FILENAME = ".nginx_pid".freeze
-    @@last_config = nil
 
     def initialize(*_args)
       @requires_root = false
@@ -14,7 +13,7 @@ module Nginxtra
       @partial_paths = []
       @file_paths = []
       @files = {}
-      @@last_config = self
+      Nginxtra::Config.last_config = self
 
       yield self if block_given?
     end
@@ -153,10 +152,7 @@ module Nginxtra
     end
 
     class << self
-      # Obtain the last Nginxtra::Config object that was created.
-      def last_config
-        @@last_config
-      end
+      attr_accessor :last_config
 
       # Obtain the config file path based on the current directory.
       # This will be the path to the first nginxtra.conf.rb found

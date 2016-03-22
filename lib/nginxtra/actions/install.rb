@@ -24,12 +24,13 @@ module Nginxtra
           return
         end
 
-        raise Nginxtra::Error::NginxDetected.new("Uninstall nginx before installing nginxtra", header: "It appears nginx is already installed!", message: "Since /etc/init.d/nginx exists, you might have an existing nginx installation that will conflict with nginxtra.  If you want to install nginxtra alongside nginx (at your own risk), please include the --ignore-nginx-check option to bypass this check.")
+        raise Nginxtra::Error::NginxDetected
       end
 
       # Create a script in the base directory which be symlinked to
       # /etc/init.d/nginxtra and then used to start and stop nginxtra
       # via update-rc.d.
+      # rubocop:disable Metrics/AbcSize, Metrics/LineLength
       def create_etc_script
         filename = "etc.init.d.nginxtra"
         workingdir = File.expand_path "."
@@ -58,6 +59,7 @@ export GEM_PATH="#{ENV["GEM_PATH"]}"
         run! %(#{sudo true}ln -s "#{File.join Nginxtra::Config.base_dir, filename}" /etc/init.d/nginxtra)
         run! %(#{sudo true}update-rc.d nginxtra defaults)
       end
+      # rubocop:enable Metrics/AbcSize, Metrics/LineLength
 
       # Notify the user that installation should be up to date.
       def up_to_date

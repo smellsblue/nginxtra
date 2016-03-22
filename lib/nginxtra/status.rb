@@ -4,18 +4,20 @@ module Nginxtra
   # The status class encapsulates current state of nginxtra, such as
   # when the last time nginx was compiled and with what options.
   class Status
-    @@status = nil
     # The name of the file that stores the state.
     FILENAME = ".nginxtra_status".freeze
 
     class << self
+      attr_accessor :status
+      private :status, :status=
+
       # Retrieve an option from the state stored in the filesystem.
       # This will first load the state from the .nginxtra_status file
       # in the root of the nginxtra gem directory, if it has not yet
       # been loaded.
       def[](option)
         load!
-        @@status[option]
+        status[option]
       end
 
       # Store an option to the status state.  This will save out to
@@ -23,7 +25,7 @@ module Nginxtra
       # return value will be the value stored to the given option key.
       def[]=(option, value)
         load!
-        @@status[option] = value
+        status[option] = value
         save!
         value
       end
@@ -35,13 +37,13 @@ module Nginxtra
       # to an empty hash (and it is NOT stored to the filesystem til
       # the first write).
       def load!
-        return if @@status
+        return if status
 
-        @@status = if File.exist? path
-                     YAML.load File.read(path)
-                   else
-                     {}
-                   end
+        self.status = if File.exist? path
+                        YAML.load File.read(path)
+                      else
+                        {}
+                      end
       end
 
       # The full path to the file with the state.
@@ -52,7 +54,7 @@ module Nginxtra
       # Save the current state to disk.
       def save!
         File.open path, "w" do |file|
-          file << YAML.dump(@@status)
+          file << YAML.dump(status)
         end
       end
     end

@@ -32,7 +32,7 @@ module Nginxtra
           @thor.empty_directory "tmp" unless File.directory? "tmp"
           @thor.empty_directory "tmp/nginxtra" unless File.directory? "tmp/nginxtra"
           @thor.create_file config_path, %(nginxtra.simple_config do
-  rails :port => #{port}, :environment => "#{environment}"
+  rails port: #{port}, environment: "#{environment}"
 end
 ), force: true
           @thor.invoke Nginxtra::CLI, ["start"], :basedir => basedir, :config => config_path, :workingdir => workingdir, :"non-interactive" => true
@@ -84,6 +84,7 @@ end
           @verbose_run = false
         end
 
+        # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
         def verbose_thread
           environment = @thor.options["environment"]
           log_path = "log/#{environment}.log"
@@ -116,6 +117,7 @@ end
         ensure
           log.close if log
         end
+        # rubocop:enable Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
       end
     end
   end

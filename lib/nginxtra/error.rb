@@ -16,6 +16,27 @@ module Nginxtra
     # Raised if config conversion fails.
     class ConvertFailed < Nginxtra::Error::Base; end
 
+    # Raised if /etc/init.d/nginx is missing.
+    class NginxInitScriptMissing < Nginxtra::Error::ConvertFailed
+      HEADER = "Cannot find nginx binary!".freeze
+      MESSAGE = "Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin".freeze
+
+      def initialize
+        super("Cannot find nginx binary", header: HEADER, message: MESSAGE)
+      end
+    end
+
+    # Raised if the nginx binary cannot be determined from the
+    # /etc/init.d/nginx init script.
+    class UndeterminedNginxBinary < Nginxtra::Error::ConvertFailed
+      HEADER = "Cannot find nginx binary!".freeze
+      MESSAGE = "The binary location of nginx cannot be determined from /etc/init.d/nginx.  Either point to it via --nginx-bin or ignore the binary with --ignore-nginx-bin".freeze
+
+      def initialize
+        super("Cannot determine nginx binary", header: HEADER, message: MESSAGE)
+      end
+    end
+
     # Raised when something is in an illegal state, such as when
     # running nginxtra_rails from a directory other than a rails root
     # directory.
@@ -82,7 +103,15 @@ module Nginxtra
     class MissingConfig < Nginxtra::Error::Base; end
 
     # Raised when installing and nginx is detected to be installed.
-    class NginxDetected < Nginxtra::Error::Base; end
+    class NginxDetected < Nginxtra::Error::Base
+      HEADER = "It appears nginx is already installed!".freeze
+      MESSAGE = "Since /etc/init.d/nginx exists, you might have an existing nginx installation that will conflict with nginxtra.  " \
+                "If you want to install nginxtra alongside nginx (at your own risk), please include the --ignore-nginx-check option to bypass this check.".freeze
+
+      def initialize
+        super("Uninstall nginx before installing nginxtra", header: HEADER, message: MESSAGE)
+      end
+    end
 
     # Raised when a run command fails.
     class RunFailed < Nginxtra::Error::Base; end
