@@ -86,7 +86,11 @@ module Nginxtra
       matches what is defined in nginxtra.conf.rb.  If it is already running, this
       will do nothing, unless --force is passed.  Note that compilation will NOT be
       forced with the --force option and should be invoked separately if it needs to
-      be forced."
+      be forced.  The --no-daemon option can be used if you want to run without
+      start-stop-daemon, though be aware this might break other nginxtra actions like
+      stop, restart, and reload.  The process will be replaced with nginx when
+      --no-daemon is used."
+    method_option "daemon", type: :boolean, default: true, banner: "Start with start-stop-daemon", aliases: "-d"
     def start
       Nginxtra::Error.protect self do
         set_working_dir!

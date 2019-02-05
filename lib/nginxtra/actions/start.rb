@@ -49,9 +49,13 @@ module Nginxtra
         !Nginxtra::Config.nginx_running?
       end
 
-      # Start nginx as a daemon.
+      # Start nginx as a daemon, unless --no-daemon is provided.
       def start_nginx
-        daemon :start
+        if @thor.options["daemon"]
+          daemon :start
+        else
+          exec [Nginxtra::Config.nginx_executable, "nginx"]
+        end
       end
 
       # Update the last nginx start time.
